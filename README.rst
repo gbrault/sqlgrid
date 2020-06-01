@@ -41,11 +41,16 @@ Installation
 ------------
 
 Installing
-  
+
+From a shell in a directory and an environment where Jupyter Lab is installed
+
+.. code-block::
+
   git clone https://github.com/seadevfr/sqlgrid.git
   cd ./sqlgrid
   python setup.py install
   jupyter labextension install js/
+
 
 At this point if you run jupyter lab normally with the 'jupyter lab' command, you should be
 able to use sqlgrid in notebooks as you normally would.
