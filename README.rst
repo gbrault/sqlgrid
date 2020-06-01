@@ -12,6 +12,12 @@ filtering controls, as well as edit your Tables by double clicking cells.
 
 sqlgrid is developed as a fork from `Quantopian's QGrid`.
 
+.. image:: https://camo.githubusercontent.com/f08ed0448415ad8a2ffe872f4c1f7a2317667318/68747470733a2f2f6d656469612e7175616e746f7069616e2e636f6d2f6c6f676f732f6f70656e5f736f757263652f71677269642d6c6f676f2d30332e706e67
+    :target: https://github.com/quantopian/qgrid
+    :width: 80px
+    :align: center
+    :alt: qgrid
+
 The backend is a complete rewrite to supprt SQL table model.
 
 Demo
