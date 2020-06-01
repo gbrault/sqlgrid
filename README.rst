@@ -1,4 +1,4 @@
-.. image:: https://media.quantopian.com/logos/open_source/sqlgrid-logo-03.png
+.. image:: ./docs/grid.png
     :target: https://sqlgrid.readthedocs.io
     :width: 190px
     :align: center

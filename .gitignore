@@ -32,3 +32,6 @@ sqlgrid/static/
 
 # OS X
 .DS_Store
+
+# VISUAL STUDIO CODE (IDE-related files)
+.vscode

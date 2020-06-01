@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+from ipywidgets import register
 import pandas as pd
 import numpy as np
 import json
@@ -521,7 +522,7 @@ def stringify(x):
         return str(x)
 
 
-@widgets.register()
+@register
 class sqlgridWidget(widgets.DOMWidget):
     """
     The widget class which is instantiated by the ``show_grid`` method. This

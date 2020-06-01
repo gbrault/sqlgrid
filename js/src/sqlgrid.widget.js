@@ -16,15 +16,15 @@ try {
 }
 var jquery_ui = require('jquery-ui-dist/jquery-ui.js');
 
-require('slickgrid-sqlgrid/slick.core.js');
-require('slickgrid-sqlgrid/lib/jquery.event.drag-2.3.0.js');
-require('slickgrid-sqlgrid/plugins/slick.rowselectionmodel.js');
-require('slickgrid-sqlgrid/plugins/slick.checkboxselectcolumn.js');
-require('slickgrid-sqlgrid/slick.dataview.js');
-require('slickgrid-sqlgrid/slick.grid.js');
-require('slickgrid-sqlgrid/slick.editors.js');
-require('style-loader!slickgrid-sqlgrid/slick.grid.css');
-require('style-loader!slickgrid-sqlgrid/slick-default-theme.css');
+require('slickgrid-qgrid/slick.core.js');
+require('slickgrid-qgrid/lib/jquery.event.drag-2.3.0.js');
+require('slickgrid-qgrid/plugins/slick.rowselectionmodel.js');
+require('slickgrid-qgrid/plugins/slick.checkboxselectcolumn.js');
+require('slickgrid-qgrid/slick.dataview.js');
+require('slickgrid-qgrid/slick.grid.js');
+require('slickgrid-qgrid/slick.editors.js');
+require('style-loader!slickgrid-qgrid/slick.grid.css');
+require('style-loader!slickgrid-qgrid/slick-default-theme.css');
 require('style-loader!jquery-ui-dist/jquery-ui.min.css');
 require('style-loader!./sqlgrid.css');
 
