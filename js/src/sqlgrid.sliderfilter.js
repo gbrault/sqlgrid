@@ -1,11 +1,11 @@
-var filter_base = require('./qgrid.filterbase.js');
+var filter_base = require('./sqlgrid.filterbase.js');
 
 class SliderFilter extends filter_base.FilterBase {
 
   get_filter_html() {
     return `
-      <div class='numerical-filter grid-filter qgrid-dropdown-menu'>
-        <h3 class='qgrid-popover-title'>
+      <div class='numerical-filter grid-filter sqlgrid-dropdown-menu'>
+        <h3 class='sqlgrid-popover-title'>
           <div class='dropdown-title'>Filter by ${this.field}</div>
         </h3>
         <div class='dropdown-body'>

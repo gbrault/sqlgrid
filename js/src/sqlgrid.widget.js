@@ -2,40 +2,40 @@ var widgets = require('@jupyter-widgets/base');
 var _ = require('underscore');
 var moment = require('moment');
 window.$ = window.jQuery = require('jquery');
-var date_filter = require('./qgrid.datefilter.js');
-var slider_filter = require('./qgrid.sliderfilter.js');
-var text_filter = require('./qgrid.textfilter.js');
-var boolean_filter = require('./qgrid.booleanfilter.js');
-var editors = require('./qgrid.editors.js');
+var date_filter = require('./sqlgrid.datefilter.js');
+var slider_filter = require('./sqlgrid.sliderfilter.js');
+var text_filter = require('./sqlgrid.textfilter.js');
+var boolean_filter = require('./sqlgrid.booleanfilter.js');
+var editors = require('./sqlgrid.editors.js');
 var dialog = null;
 try {
   dialog = require('base/js/dialog');
 } catch (e) {
-  console.warn("Qgrid was unable to load base/js/dialog. " +
+  console.warn("sqlgrid was unable to load base/js/dialog. " +
                "Full screen button won't be available");
 }
 var jquery_ui = require('jquery-ui-dist/jquery-ui.js');
 
-require('slickgrid-qgrid/slick.core.js');
-require('slickgrid-qgrid/lib/jquery.event.drag-2.3.0.js');
-require('slickgrid-qgrid/plugins/slick.rowselectionmodel.js');
-require('slickgrid-qgrid/plugins/slick.checkboxselectcolumn.js');
-require('slickgrid-qgrid/slick.dataview.js');
-require('slickgrid-qgrid/slick.grid.js');
-require('slickgrid-qgrid/slick.editors.js');
-require('style-loader!slickgrid-qgrid/slick.grid.css');
-require('style-loader!slickgrid-qgrid/slick-default-theme.css');
+require('slickgrid-sqlgrid/slick.core.js');
+require('slickgrid-sqlgrid/lib/jquery.event.drag-2.3.0.js');
+require('slickgrid-sqlgrid/plugins/slick.rowselectionmodel.js');
+require('slickgrid-sqlgrid/plugins/slick.checkboxselectcolumn.js');
+require('slickgrid-sqlgrid/slick.dataview.js');
+require('slickgrid-sqlgrid/slick.grid.js');
+require('slickgrid-sqlgrid/slick.editors.js');
+require('style-loader!slickgrid-sqlgrid/slick.grid.css');
+require('style-loader!slickgrid-sqlgrid/slick-default-theme.css');
 require('style-loader!jquery-ui-dist/jquery-ui.min.css');
-require('style-loader!./qgrid.css');
+require('style-loader!./sqlgrid.css');
 
-// Model for the qgrid widget
-class QgridModel extends widgets.DOMWidgetModel {
+// Model for the sqlgrid widget
+class sqlgridModel extends widgets.DOMWidgetModel {
   defaults() {
     return _.extend(widgets.DOMWidgetModel.prototype.defaults(), {
-      _model_name : 'QgridModel',
-      _view_name : 'QgridView',
-      _model_module : 'qgrid',
-      _view_module : 'qgrid',
+      _model_name : 'sqlgridModel',
+      _view_name : 'sqlgridView',
+      _model_module : 'sqlgrid',
+      _view_module : 'sqlgrid',
       _model_module_version : '^1.1.3',
       _view_module_version : '^1.1.3',
       _df_json: '',
@@ -45,19 +45,19 @@ class QgridModel extends widgets.DOMWidgetModel {
 }
 
 
-// View for the qgrid widget
-class QgridView extends widgets.DOMWidgetView {
+// View for the sqlgrid widget
+class sqlgridView extends widgets.DOMWidgetView {
   render() {
-    // subscribe to incoming messages from the QGridWidget
+    // subscribe to incoming messages from the sqlgridWidget
     this.model.on('msg:custom', this.handle_msg, this);
-    this.initialize_qgrid();
+    this.initialize_sqlgrid();
   }
 
   /**
    * Main entry point for drawing the widget,
    * including toolbar buttons if necessary.
    */
-  initialize_qgrid() {
+  initialize_sqlgrid() {
     this.$el.empty();
     if (!this.$el.hasClass('q-grid-container')){
       this.$el.addClass('q-grid-container');
@@ -117,10 +117,10 @@ class QgridView extends widgets.DOMWidgetView {
 
     this.full_screen_btn = null;
     if (dialog) {
-      this.full_screen_modal = $('body').find('.qgrid-modal');
+      this.full_screen_modal = $('body').find('.sqlgrid-modal');
       if (this.full_screen_modal.length == 0) {
         this.full_screen_modal = $(`
-          <div class="modal qgrid-modal">
+          <div class="modal sqlgrid-modal">
             <div class="modal-dialog">
               <div class="modal-content">
                 <div class="modal-body"></div>
@@ -176,14 +176,14 @@ class QgridView extends widgets.DOMWidgetView {
       if (IPython && IPython.keyboard_manager) {
         modal_options.keyboard_manager = IPython.keyboard_manager;
       }
-      var qgrid_modal = dialog.modal(modal_options);
+      var sqlgrid_modal = dialog.modal(modal_options);
 
-      qgrid_modal.removeClass('fade');
-      qgrid_modal.addClass('qgrid-modal');
-      qgrid_modal.on('shown.bs.modal', (e) => {
+      sqlgrid_modal.removeClass('fade');
+      sqlgrid_modal.addClass('sqlgrid-modal');
+      sqlgrid_modal.on('shown.bs.modal', (e) => {
         this.slick_grid.resizeCanvas();
       });
-      qgrid_modal.on('hidden.bs.modal', (e) => {
+      sqlgrid_modal.on('hidden.bs.modal', (e) => {
         this.$el.detach();
         this.$el_wrapper.height('auto');
         this.$el_wrapper.append(this.$el);
@@ -191,7 +191,7 @@ class QgridView extends widgets.DOMWidgetView {
         this.slick_grid.bindAllEvents();
         this.bind_toolbar_events();
       });
-      qgrid_modal.modal('show');
+      sqlgrid_modal.modal('show');
     });
   }
 
@@ -671,7 +671,7 @@ class QgridView extends widgets.DOMWidgetView {
   }
 
   /**
-   * Handle messages from the QGridWidget.
+   * Handle messages from the sqlgridWidget.
    */
   handle_msg(msg) {
     if (msg.type === 'draw_table') {
@@ -836,6 +836,6 @@ class QgridView extends widgets.DOMWidgetView {
 }
 
 module.exports = {
-  QgridModel : QgridModel,
-  QgridView : QgridView
+  sqlgridModel : sqlgridModel,
+  sqlgridView : sqlgridView
 };

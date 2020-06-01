@@ -8,8 +8,8 @@ from .grid import (
     off,
     set_grid_option,
     show_grid,
-    QgridWidget,
-    QGridWidget,
+    sqlgridWidget,
+    sqlgridWidget,
 )
 
 
@@ -18,8 +18,8 @@ def _jupyter_nbextension_paths():
         {
             "section": "notebook",
             "src": "static",
-            "dest": "qgrid",
-            "require": "qgrid/extension",
+            "dest": "sqlgrid",
+            "require": "sqlgrid/extension",
         }
     ]
 
@@ -32,6 +32,6 @@ __all__ = [
     "off",
     "set_grid_option",
     "show_grid",
-    "QgridWidget",
-    "QGridWidget",
+    "sqlgridWidget",
+    "sqlgridWidget",
 ]

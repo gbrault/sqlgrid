@@ -121,11 +121,11 @@ class _EventHandlers(object):
             except KeyError:
                 pass
 
-    def notify_listeners(self, event, qgrid_widget):
+    def notify_listeners(self, event, sqlgrid_widget):
         event_listeners = self._listeners.get(event['name'], [])
         all_listeners = self._listeners.get(All, [])
         for c in chain(event_listeners, all_listeners):
-            c(event, qgrid_widget)
+            c(event, sqlgrid_widget)
 
 
 defaults = _DefaultSettings()
@@ -137,24 +137,24 @@ def set_defaults(show_toolbar=None,
                  grid_options=None,
                  column_options=None):
     """
-    Set the default qgrid options.  The options that you can set here are the
-    same ones that you can pass into ``QgridWidget`` constructor, with the
+    Set the default sqlgrid options.  The options that you can set here are the
+    same ones that you can pass into ``sqlgridWidget`` constructor, with the
     exception of the ``df`` option, for which a default value wouldn't be
-    particularly useful (since the purpose of qgrid is to display a DataFrame).
+    particularly useful (since the purpose of sqlgrid is to display a DataFrame).
 
-    See the documentation for ``QgridWidget`` for more information.
+    See the documentation for ``sqlgridWidget`` for more information.
 
     Notes
     -----
     This function will be useful to you if you find yourself
-    setting the same options every time you create a QgridWidget. Calling
+    setting the same options every time you create a sqlgridWidget. Calling
     this ``set_defaults`` function once sets the options for the lifetime of
     the kernel, so you won't have to include the same options every time you
-    instantiate a ``QgridWidget``.
+    instantiate a ``sqlgridWidget``.
 
     See Also
     --------
-    QgridWidget :
+    sqlgridWidget :
         The widget whose default behavior is changed by ``set_defaults``.
     """
     defaults.set_defaults(show_toolbar=show_toolbar,
@@ -165,7 +165,7 @@ def set_defaults(show_toolbar=None,
 
 def on(names, handler):
     """
-    Setup a handler to be called when a user interacts with any qgrid instance.
+    Setup a handler to be called when a user interacts with any sqlgrid instance.
 
     Parameters
     ----------
@@ -175,15 +175,15 @@ def on(names, handler):
         str, the handler will apply just the event with that name.
     handler : callable
         A callable that is called when the event occurs. Its
-        signature should be ``handler(event, qgrid_widget)``, where
-        ``event`` is a dictionary and ``qgrid_widget`` is the QgridWidget
+        signature should be ``handler(event, sqlgrid_widget)``, where
+        ``event`` is a dictionary and ``sqlgrid_widget`` is the sqlgridWidget
         instance that fired the event. The ``event`` dictionary at least
         holds a ``name`` key which specifies the name of the event that
         occurred.
 
     Notes
     -----
-    There is also an ``on`` method on each individual QgridWidget instance,
+    There is also an ``on`` method on each individual sqlgridWidget instance,
     which works exactly like this one except it only listens for events on an
     individual instance (whereas this module-level method listens for events
     on all instances).
@@ -192,9 +192,9 @@ def on(names, handler):
     that can be listened to via this module-level ``on`` method.  Both
     methods support the same events with one exception: the
     ``instance_create`` event.  This event is only available at the
-    module-level and not on individual QgridWidget instances.
+    module-level and not on individual sqlgridWidget instances.
 
-    The reason it's not available on individual qgrid instances is because
+    The reason it's not available on individual sqlgrid instances is because
     the only time it fires is when a new instance is created. This means
     it's already done firing by the time a user has a chance to hook up any
     event listeners.
@@ -218,9 +218,9 @@ def on(names, handler):
 
     See Also
     --------
-    QgridWidget.on :
+    sqlgridWidget.on :
         Same as this ``on`` method except it listens for events on an
-        individual QgridWidget instance rather than on all instances.  See
+        individual sqlgridWidget instance rather than on all instances.  See
         this method for a list of all the types of events that can be
         listened for via either ``on`` method.
     off:
@@ -232,7 +232,7 @@ def on(names, handler):
 
 def off(names, handler):
     """
-    Remove a qgrid event handler that was registered with the ``on`` method.
+    Remove a sqlgrid event handler that was registered with the ``on`` method.
 
     Parameters
     ----------
@@ -274,21 +274,21 @@ def set_grid_option(optname, optvalue):
     defaults.grid_options[optname] = optvalue
 
 
-def _display_as_qgrid(data):
+def _display_as_sqlgrid(data):
     display(show_grid(data))
 
 
 def enable(dataframe=True, series=True):
     """
-    Automatically use qgrid to display all DataFrames and/or Series
+    Automatically use sqlgrid to display all DataFrames and/or Series
     instances in the notebook.
 
     Parameters
     ----------
     dataframe : bool
-        Whether to automatically use qgrid to display DataFrames instances.
+        Whether to automatically use sqlgrid to display DataFrames instances.
     series : bool
-        Whether to automatically use qgrid to display Series instances.
+        Whether to automatically use sqlgrid to display Series instances.
     """
     try:
         from IPython.core.getipython import get_ipython
@@ -299,19 +299,19 @@ def enable(dataframe=True, series=True):
     ip_formatter = ip.display_formatter.ipython_display_formatter
 
     if dataframe:
-        ip_formatter.for_type(pd.DataFrame, _display_as_qgrid)
+        ip_formatter.for_type(pd.DataFrame, _display_as_sqlgrid)
     else:
         ip_formatter.type_printers.pop(pd.DataFrame, None)
 
     if series:
-        ip_formatter.for_type(pd.Series, _display_as_qgrid)
+        ip_formatter.for_type(pd.Series, _display_as_sqlgrid)
     else:
         ip_formatter.type_printers.pop(pd.Series)
 
 
 def disable():
     """
-    Stop using qgrid to display DataFrames and Series instances in the
+    Stop using sqlgrid to display DataFrames and Series instances in the
     notebook.  This has the same effect as calling ``enable`` with both
     kwargs set to ``False`` (and in fact, that's what this function does
     internally).
@@ -327,24 +327,24 @@ def show_grid(data_frame,
               column_definitions=None,
               row_edit_callback=None):
     """
-    Renders a DataFrame or Series as an interactive qgrid, represented by
-    an instance of the ``QgridWidget`` class.  The ``QgridWidget`` instance
+    Renders a DataFrame or Series as an interactive sqlgrid, represented by
+    an instance of the ``sqlgridWidget`` class.  The ``sqlgridWidget`` instance
     is constructed using the options passed in to this function.  The
     ``data_frame`` argument to this function is used as the ``df`` kwarg in
-    call to the QgridWidget constructor, and the rest of the parameters
+    call to the sqlgridWidget constructor, and the rest of the parameters
     are passed through as is.
 
     If the ``data_frame`` argument is a Series, it will be converted to a
-    DataFrame before being passed in to the QgridWidget constructor as the
+    DataFrame before being passed in to the sqlgridWidget constructor as the
     ``df`` kwarg.
 
-    :rtype: QgridWidget
+    :rtype: sqlgridWidget
 
     Parameters
     ----------
     data_frame : DataFrame
         The DataFrame that will be displayed by this instance of
-        QgridWidget.
+        sqlgridWidget.
     grid_options : dict
         Options to use when creating the SlickGrid control (i.e. the
         interactive grid).  See the Notes section below for more information
@@ -397,7 +397,7 @@ def show_grid(data_frame,
             'autoEdit': False,
             'explicitInitialization': True,
 
-            # Qgrid options
+            # sqlgrid options
             'maxVisibleRows': 15,
             'minVisibleRows': 8,
             'sortable': True,
@@ -411,15 +411,15 @@ def show_grid(data_frame,
     <https://github.com/mleibman/SlickGrid/wiki/Grid-Options>`_.
 
     The second group of option are options that were added specifically
-    for Qgrid and therefore are not documented in the SlickGrid documentation.
+    for sqlgrid and therefore are not documented in the SlickGrid documentation.
     The following bullet points describe these options.
 
-    * **maxVisibleRows** The maximum number of rows that Qgrid will show.
-    * **minVisibleRows** The minimum number of rows that Qgrid will show
-    * **sortable** Whether the Qgrid instance will allow the user to sort
+    * **maxVisibleRows** The maximum number of rows that sqlgrid will show.
+    * **minVisibleRows** The minimum number of rows that sqlgrid will show
+    * **sortable** Whether the sqlgrid instance will allow the user to sort
       columns by clicking the column headers. When this is set to ``False``,
       nothing will happen when users click the column headers.
-    * **filterable** Whether the Qgrid instance will allow the user to filter
+    * **filterable** Whether the sqlgrid instance will allow the user to filter
       the grid. When this is set to ``False`` the filter icons won't be shown
       for any columns.
     * **highlightSelectedCell** If you set this to True, the selected cell
@@ -440,7 +440,7 @@ def show_grid(data_frame,
             'toolTip': "",
             'width': None
 
-            # Qgrid column options
+            # sqlgrid column options
             'editable': True,
         }
 
@@ -448,7 +448,7 @@ def show_grid(data_frame,
     described in the `SlickGrid documentation
     <https://github.com/mleibman/SlickGrid/wiki/Column-Options>`_.
 
-    The ``editable`` option was added specifically for Qgrid and therefore is
+    The ``editable`` option was added specifically for sqlgrid and therefore is
     not documented in the SlickGrid documentation.  This option specifies
     whether a column should be editable or not.
 
@@ -459,12 +459,12 @@ def show_grid(data_frame,
                    and ``column_definitions`` parameters, since those
                    depend on the particular set of data being shown by an
                    instance, and therefore aren't parameters we would want
-                   to set for all QgridWidet instances.
+                   to set for all sqlgridWidet instances.
     set_grid_option : Permanently set global defaults for individual
                       grid options.  Does so by changing the defaults
                       that the ``show_grid`` method uses for the
                       ``grid_options`` parameter.
-    QgridWidget : The widget class that is instantiated and returned by this
+    sqlgridWidget : The widget class that is instantiated and returned by this
                   method.
 
     """
@@ -503,7 +503,7 @@ def show_grid(data_frame,
     column_definitions = (column_definitions or {})
 
     # create a visualization for the dataframe
-    return QgridWidget(df=data_frame, precision=precision,
+    return sqlgridWidget(df=data_frame, precision=precision,
                        grid_options=grid_options,
                        column_options=column_options,
                        column_definitions=column_definitions,
@@ -522,7 +522,7 @@ def stringify(x):
 
 
 @widgets.register()
-class QgridWidget(widgets.DOMWidget):
+class sqlgridWidget(widgets.DOMWidget):
     """
     The widget class which is instantiated by the ``show_grid`` method. This
     class can be constructed directly but that's not recommended because
@@ -536,9 +536,9 @@ class QgridWidget(widgets.DOMWidget):
 
     See Also
     --------
-    show_grid : The method that should be used to construct QgridWidget
+    show_grid : The method that should be used to construct sqlgridWidget
                 instances, because it provides reasonable defaults for all
-                of the qgrid options.
+                of the sqlgrid options.
 
     Attributes
     ----------
@@ -562,10 +562,10 @@ class QgridWidget(widgets.DOMWidget):
 
     """
 
-    _view_name = Unicode('QgridView').tag(sync=True)
-    _model_name = Unicode('QgridModel').tag(sync=True)
-    _view_module = Unicode('qgrid').tag(sync=True)
-    _model_module = Unicode('qgrid').tag(sync=True)
+    _view_name = Unicode('sqlgridView').tag(sync=True)
+    _model_name = Unicode('sqlgridModel').tag(sync=True)
+    _view_module = Unicode('sqlgrid').tag(sync=True)
+    _model_module = Unicode('sqlgrid').tag(sync=True)
     _view_module_version = Unicode('^1.1.3').tag(sync=True)
     _model_module_version = Unicode('^1.1.3').tag(sync=True)
 
@@ -586,8 +586,8 @@ class QgridWidget(widgets.DOMWidget):
     _initialized = Bool(False)
     _ignore_df_changed = Bool(False)
     _unfiltered_df = Instance(pd.DataFrame)
-    _index_col_name = Unicode('qgrid_unfiltered_index', sync=True)
-    _sort_col_suffix = Unicode('_qgrid_sort_column')
+    _index_col_name = Unicode('sqlgrid_unfiltered_index', sync=True)
+    _sort_col_suffix = Unicode('_sqlgrid_sort_column')
     _multi_index = Bool(False, sync=True)
     _edited = Bool(False)
     _selected_rows = List([])
@@ -613,9 +613,9 @@ class QgridWidget(widgets.DOMWidget):
     def __init__(self, *args, **kwargs):
         self.id = str(uuid4())
         self._initialized = False
-        super(QgridWidget, self).__init__(*args, **kwargs)
+        super(sqlgridWidget, self).__init__(*args, **kwargs)
         # register a callback for custom messages
-        self.on_msg(self._handle_qgrid_msg)
+        self.on_msg(self._handle_sqlgrid_msg)
         self._initialized = True
         self._handlers = _EventHandlers()
 
@@ -648,15 +648,15 @@ class QgridWidget(widgets.DOMWidget):
             str, the handler will apply just the event with that name.
         handler : callable
             A callable that is called when the event occurs. Its
-            signature should be ``handler(event, qgrid_widget)``, where
-            ``event`` is a dictionary and ``qgrid_widget`` is the QgridWidget
+            signature should be ``handler(event, sqlgrid_widget)``, where
+            ``event`` is a dictionary and ``sqlgrid_widget`` is the sqlgridWidget
             instance that fired the event. The ``event`` dictionary at least
             holds a ``name`` key which specifies the name of the event that
             occurred.
 
         Notes
         -----
-        Here's the list of events that you can listen to on QgridWidget
+        Here's the list of events that you can listen to on sqlgridWidget
         instances via the ``on`` method::
 
             [
@@ -695,7 +695,7 @@ class QgridWidget(widgets.DOMWidget):
             * **column** The name of the column for which the filter control
               was shown.
 
-        * **json_updated** A user action causes QgridWidget to send rows of
+        * **json_updated** A user action causes sqlgridWidget to send rows of
           data (in json format) down to the browser. This happens as a side
           effect of certain actions such as scrolling, sorting, and filtering.
 
@@ -771,9 +771,9 @@ class QgridWidget(widgets.DOMWidget):
         --------
         on :
             Same as the instance-level ``on`` method except it listens for
-            events on all instances rather than on an individual QgridWidget
+            events on all instances rather than on an individual sqlgridWidget
             instance.
-        QgridWidget.off:
+        sqlgridWidget.off:
             Unhook a handler that was hooked up using the instance-level
             ``on`` method.
 
@@ -782,7 +782,7 @@ class QgridWidget(widgets.DOMWidget):
 
     def off(self, names, handler):
         """
-        Remove a qgrid event handler that was registered with the current
+        Remove a sqlgrid event handler that was registered with the current
         instance's ``on`` method.
 
         Parameters
@@ -797,7 +797,7 @@ class QgridWidget(widgets.DOMWidget):
 
         See Also
         --------
-        QgridWidget.on:
+        sqlgridWidget.on:
             The method for hooking up instance-level handlers that this
             ``off`` method can remove.
 
@@ -1414,15 +1414,15 @@ class QgridWidget(widgets.DOMWidget):
         self._update_table(triggered_by='change_filter')
         self._ignore_df_changed = False
 
-    def _handle_qgrid_msg(self, widget, content, buffers=None):
+    def _handle_sqlgrid_msg(self, widget, content, buffers=None):
         try:
-            self._handle_qgrid_msg_helper(content)
+            self._handle_sqlgrid_msg_helper(content)
         except Exception as e:
             self.log.error(e)
             self.log.exception("Unhandled exception while handling msg")
 
-    def _handle_qgrid_msg_helper(self, content):
-        """Handle incoming messages from the QGridView"""
+    def _handle_sqlgrid_msg_helper(self, content):
+        """Handle incoming messages from the sqlgridView"""
         if 'type' not in content:
             return
 
@@ -1563,7 +1563,7 @@ class QgridWidget(widgets.DOMWidget):
     def get_changed_df(self):
         """
         Get a copy of the DataFrame that was used to create the current
-        instance of QgridWidget which reflects the current state of the UI.
+        instance of sqlgridWidget which reflects the current state of the UI.
         This includes any sorting or filtering changes, as well as edits
         that have been made by double clicking cells.
 
@@ -1610,7 +1610,7 @@ class QgridWidget(widgets.DOMWidget):
 
         See Also
         --------
-        QgridWidget.remove_rows:
+        sqlgridWidget.remove_rows:
             The method for removing a row (or rows).
         """
         if row is None:
@@ -1738,9 +1738,9 @@ class QgridWidget(widgets.DOMWidget):
 
         See Also
         --------
-        QgridWidget.add_row:
+        sqlgridWidget.add_row:
             The method for adding a row.
-        QgridWidget.remove_row:
+        sqlgridWidget.remove_row:
             Alias for this method.
         """
         row_indices = self._remove_rows(rows=rows)
@@ -1842,4 +1842,4 @@ class QgridWidget(widgets.DOMWidget):
 
 
 # Alias for legacy support, since we changed the capitalization
-QGridWidget = QgridWidget
+sqlgridWidget = sqlgridWidget

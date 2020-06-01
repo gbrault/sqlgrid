@@ -1,5 +1,5 @@
-name: qgrid_docs
+name: sqlgrid_docs
 channels:
   - conda-forge
 dependencies:
-  - qgrid
+  - sqlgrid

@@ -1,11 +1,11 @@
 var $ = require('jquery');
 
 class FilterBase {
-  constructor(field, column_type, qgrid) {
+  constructor(field, column_type, sqlgrid) {
     this.field = field;
     this.column_type = column_type;
-    this.qgrid = qgrid;
-    this.widget_model = qgrid.model;
+    this.sqlgrid = sqlgrid;
+    this.widget_model = sqlgrid.model;
     if (this.widget_model) {
       this.precision = this.widget_model.get('precision');
     }
@@ -15,7 +15,7 @@ class FilterBase {
   handle_msg(msg) {
     var column_info = msg.col_info;
     if (msg.type == 'column_min_max_updated'){
-      this.update_min_max(column_info, this.qgrid.has_active_filter());
+      this.update_min_max(column_info, this.sqlgrid.has_active_filter());
     }
   }
 
@@ -125,8 +125,8 @@ class FilterBase {
     this.filter_elem.width(filter_width);
     var elem_right = left + filter_width;
 
-    var qgrid_area = this.filter_elem.closest('.q-grid-container');
-    if (elem_right > qgrid_area.offset().left + qgrid_area.width()) {
+    var sqlgrid_area = this.filter_elem.closest('.q-grid-container');
+    if (elem_right > sqlgrid_area.offset().left + sqlgrid_area.width()) {
       left = (this.filter_btn.offset().left + this.filter_btn.width()) - filter_width;
     }
 

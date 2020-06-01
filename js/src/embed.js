@@ -5,5 +5,5 @@
 // already be loaded by the notebook otherwise.
 
 // Export widget models and views, and the npm package version number.
-module.exports = require('./qgrid.widget.js');
+module.exports = require('./sqlgrid.widget.js');
 module.exports.version = require('../package.json').version;
