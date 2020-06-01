@@ -23,6 +23,8 @@ from itertools import chain
 from uuid import uuid4
 from six import string_types
 
+from sqlData import sqlData
+
 # versions of pandas prior to version 0.20.0 don't support the orient='table'
 # when calling the 'to_json' function on DataFrames.  to get around this we
 # have our own copy of the panda's 0.20.0 implementation that we use for old
@@ -493,13 +495,15 @@ def show_grid(data_frame,
             "grid_options must be dict, not %s" % type(grid_options)
         )
 
+    # can be a pandas DataFrame or a Series or a sqlData object
     # if a Series is passed in, convert it to a DataFrame
-    if isinstance(data_frame, pd.Series):
-        data_frame = pd.DataFrame(data_frame)
-    elif not isinstance(data_frame, pd.DataFrame):
-        raise TypeError(
-            "data_frame must be DataFrame or Series, not %s" % type(data_frame)
-        )
+    if not isinstance(data_frame, sqlData):
+        if isinstance(data_frame, pd.Series):
+            data_frame = pd.DataFrame(data_frame)
+        elif not isinstance(data_frame, pd.DataFrame):
+            raise TypeError(
+                "data_frame must be an sqlData, a pandas DataFrame or Series, not %s" % type(data_frame)
+            )
 
     column_definitions = (column_definitions or {})
 
