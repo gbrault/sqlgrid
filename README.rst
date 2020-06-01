@@ -1,4 +1,4 @@
-.. image:: file://./docs/grid.png
+.. image:: :file:`./docs/grid.png`
     :target: https://sqlgrid.readthedocs.io
     :width: 190px
     :align: center
