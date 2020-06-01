@@ -7,7 +7,7 @@ to install from source and make local changes to their copy of sqlgrid, please r
 All contributions, bug reports, bug fixes, documentation improvements, enhancements and ideas are welcome.
 We `track issues`__ on `GitHub`__ and that's also the best place to ask any questions you may have.
 
-__ https://github.com/quantopian/sqlgrid#running-from-source-testing-your-changes
-__ https://github.com/quantopian/sqlgrid
-__ https://github.com/quantopian/sqlgrid/issues
+__ https://github.com/seadevfr/sqlgrid#running-from-source-testing-your-changes
+__ https://github.com/seadevfr/sqlgrid
+__ https://github.com/seadevfr/sqlgrid/issues
 __ https://github.com/
