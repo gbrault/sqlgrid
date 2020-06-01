@@ -29,9 +29,9 @@ Click the badge below to try out sqlgrid using Jupyter Lab over binder:
     :target: https://mybinder.org/v2/gh/seadev/sqlgrid-notebooks/master?urlpath=lab
 
 
-*For the binder links, you'll see a brief loading screen while a server is being created for you in the cloud.  This shouldn't take more than a minute, and usually completes in under 10 seconds.*
+*For the binder links, you'll see a brief loading screen while a server is being created for you in the cloud.*
 
-*The binder demos generally will be using the most recent stable release of sqlgrid, so features that were added in a recent beta version may not be available in those demos.*
+*The binder demos generally will be using the most recent stable release of sqlgrid, so features that were added in a recent beta version may not be available in stable release.*
 
 API Documentation
 -----------------
