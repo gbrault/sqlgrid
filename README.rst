@@ -18,7 +18,7 @@ sqlgrid is developed as a fork from `Quantopian's QGrid` (June 2020).
     :align: center
     :alt: qgrid
 
-The backend is a complete rewrite to supprt SQL table model.
+The backend is a complete rewrite to support SQL table model.
 
 Demo
 ----
