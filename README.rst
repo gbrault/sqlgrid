@@ -31,7 +31,7 @@ Click the badge below to try out sqlgrid using Jupyter Lab over binder:
 
 *For the binder links, you'll see a brief loading screen while a server is being created for you in the cloud.*
 
-*The binder demos generally will be using the most recent stable release of sqlgrid, so features that were added in a recent beta version may not be available in stable release.*
+*Notice that features that were added in a recent beta version may not be available in stable release.*
 
 API Documentation
 -----------------
