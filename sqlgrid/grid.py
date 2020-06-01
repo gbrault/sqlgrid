@@ -1841,6 +1841,3 @@ class sqlgridWidget(widgets.DOMWidget):
             'option_value': option_value
         })
 
-
-# Alias for legacy support, since we changed the capitalization
-sqlgridWidget = sqlgridWidget
