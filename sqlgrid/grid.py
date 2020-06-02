@@ -884,10 +884,15 @@ class sqlgridWidget(widgets.DOMWidget):
                       fire_data_change_event=True):
 
         if self.gtype == "sql":
-            _df = self.sql._update_table(self._viewport_range,
+            (dir,_df) = self.sql._update_table(self._viewport_range,
                                          self._df)
             if _df is not None:
                 self._df = _df
+                fire_data_change_event = True
+                if dir:
+                    scroll_to_row = 1
+                else:
+                    scroll_to_row = max(len(_df.index)-12,PAGE_SIZE-12)
 
         from_index = max(self._viewport_range[0] - PAGE_SIZE, 0)
         to_index = max(self._viewport_range[0] + PAGE_SIZE, 0)
@@ -1103,16 +1108,6 @@ class sqlgridWidget(widgets.DOMWidget):
             if scroll_to_row:
                 data_to_send['scroll_to_row'] = scroll_to_row
             self.send(data_to_send)
-
-        """Select the appropriate row for sql"""
-        if self.gtype == "sql":
-            low = self._df.index[0]
-            high = self._df.index[-1]
-            if from_index == 0:
-                row = low + 1
-            else:
-                row = high - 1
-            self.change_selection(rows=[row])
 
     def _update_sort(self):
         try:

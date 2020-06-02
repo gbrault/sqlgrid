@@ -758,11 +758,17 @@ class sqlgridView extends widgets.DOMWidgetView {
           this.slick_grid.scrollRowIntoView(msg.scroll_to_row);
           this.slick_grid.setSelectedRows([msg.scroll_to_row]);
         } else if (msg.triggered_by === 'change_viewport') {
-            if (this.last_vp == null) {
-              this.last_vp = this.slick_grid.getViewport();
-            }
-            if(this.last_vp.bottom >= this.df_length) {
-               this.slick_grid.scrollRowIntoView(this.last_vp.bottom);
+            if (msg.scroll_to_row) {
+              this.slick_grid.scrollRowIntoView(msg.scroll_to_row);
+              this.slick_grid.setSelectedRows([msg.scroll_to_row]);  
+              this.slick_grid.gotoCell(msg.scroll_to_row,0);  
+            } else {
+              if (this.last_vp == null) {
+                this.last_vp = this.slick_grid.getViewport();
+              }
+              if(this.last_vp.bottom >= this.df_length) {
+                this.slick_grid.scrollRowIntoView(this.last_vp.bottom);
+              }
             }
         }
   

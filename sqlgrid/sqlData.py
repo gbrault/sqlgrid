@@ -19,9 +19,9 @@ class sqlData():
                 statement = text(f"SELECT count(*) FROM `{self.table}`")
                 self.tablesize = conn.execute(statement).fetchone()[0]
 
-    def _update_df(self, _index_col_name):
+    def _update_df(self, _index_col_name, overlap=0):
         self._index_col_name = _index_col_name
-        _df = pd.read_sql(f"SELECT * FROM `{self.table}` LIMIT {self.page} OFFSET {self.position}",
+        _df = pd.read_sql(f"SELECT * FROM `{self.table}` LIMIT {self.page+abs(overlap)} OFFSET {self.position+overlap}",
                           self.engine
                          )
         # insert a column which we'll use later to map edits from
@@ -34,13 +34,14 @@ class sqlData():
             # load forward
             if self.position + self.page < self.tablesize:
                 self.position += self.page
-                return self._update_df(self._index_col_name)
+                return (True, self._update_df(self._index_col_name, overlap=-5))
         if _viewport_range[0] == 0:
             # load backward
             if self.position > 0:
                 self.position -= self.page
-                return self._update_df(self._index_col_name)
-        return None
+                overlap = 5 if self.position !=0 else 0
+                return (False, self._update_df(self._index_col_name, overlap=overlap))
+        return (None,None)
 
 
 
