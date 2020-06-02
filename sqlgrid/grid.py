@@ -23,7 +23,7 @@ from itertools import chain
 from uuid import uuid4
 from six import string_types
 
-from sqlData import sqlData
+from .sqlData import sqlData
 
 # versions of pandas prior to version 0.20.0 don't support the orient='table'
 # when calling the 'to_json' function on DataFrames.  to get around this we
@@ -345,9 +345,11 @@ def show_grid(data_frame,
 
     Parameters
     ----------
-    data_frame : DataFrame
-        The DataFrame that will be displayed by this instance of
+    data_frame : DataFrame or sqlData
+        The Data that will be displayed by this instance of
         sqlgridWidget.
+        DataFrame: same behavior as qgrid
+        sqlData: a wrapper around an SQL database connection
     grid_options : dict
         Options to use when creating the SlickGrid control (i.e. the
         interactive grid).  See the Notes section below for more information
@@ -504,16 +506,31 @@ def show_grid(data_frame,
             raise TypeError(
                 "data_frame must be an sqlData, a pandas DataFrame or Series, not %s" % type(data_frame)
             )
+        gtype = "df"
+    else:
+        gtype = "sql"
 
     column_definitions = (column_definitions or {})
 
     # create a visualization for the dataframe
-    return sqlgridWidget(df=data_frame, precision=precision,
-                       grid_options=grid_options,
-                       column_options=column_options,
-                       column_definitions=column_definitions,
-                       row_edit_callback=row_edit_callback,
-                       show_toolbar=show_toolbar)
+    if gtype is not None:
+        if gtype == 'df':
+            return sqlgridWidget(df=data_frame, precision=precision,
+                            grid_options=grid_options,
+                            column_options=column_options,
+                            column_definitions=column_definitions,
+                            row_edit_callback=row_edit_callback,
+                            show_toolbar=show_toolbar)
+        else:
+            return sqlgridWidget(sql=data_frame, precision=precision,
+                            grid_options=grid_options,
+                            column_options=column_options,
+                            column_definitions=column_definitions,
+                            row_edit_callback=row_edit_callback,
+                            show_toolbar=show_toolbar)
+
+    else:
+        return None
 
 
 PAGE_SIZE = 100
@@ -606,7 +623,9 @@ class sqlgridWidget(widgets.DOMWidget):
     _sort_ascending = Bool(True, sync=True)
     _handlers = Instance(_EventHandlers)
 
-    df = Instance(pd.DataFrame)
+    df = Instance(pd.DataFrame, default_value=pd.DataFrame())
+    sql = Instance(sqlData, default_value=sqlData())
+    gtype = Unicode('none')
     precision = Integer(6, sync=True)
     grid_options = Dict(sync=True)
     column_options = Dict({})
@@ -628,7 +647,11 @@ class sqlgridWidget(widgets.DOMWidget):
             'name': 'instance_created'
         }, self)
 
-        if self.df is not None:
+        if 'df' in kwargs:
+            self.gtype = 'df'
+        elif 'sql' in kwargs:
+            self.gtype = 'sql'
+        if self.gtype in ['df','sql']:
             self._update_df()
 
     def _grid_options_default(self):
@@ -811,16 +834,20 @@ class sqlgridWidget(widgets.DOMWidget):
 
     def _update_df(self):
         self._ignore_df_changed = True
-        # make a copy of the user's dataframe
-        self._df = self.df.copy()
 
-        # insert a column which we'll use later to map edits from
-        # a filtered version of this df back to the unfiltered version
-        self._df.insert(0, self._index_col_name, range(0, len(self._df)))
+        if self.gtype == 'df':
+            # make a copy of the user's dataframe
+            self._df = self.df.copy()
 
-        # keep an unfiltered version to serve as the starting point
-        # for filters, and the state we return to when filters are removed
-        self._unfiltered_df = self._df.copy()
+            # insert a column which we'll use later to map edits from
+            # a filtered version of this df back to the unfiltered version
+            self._df.insert(0, self._index_col_name, range(0, len(self._df)))
+
+            # keep an unfiltered version to serve as the starting point
+            # for filters, and the state we return to when filters are removed
+            self._unfiltered_df = self._df.copy()
+        else:
+            self._df = self.sql._update_df(self._index_col_name)
 
         self._update_table(update_columns=True, fire_data_change_event=False)
         self._ignore_df_changed = False
@@ -855,11 +882,17 @@ class sqlgridWidget(widgets.DOMWidget):
                       triggered_by=None,
                       scroll_to_row=None,
                       fire_data_change_event=True):
-        df = self._df.copy()
+
+        if self.gtype == "sql":
+            _df = self.sql._update_table(self._viewport_range,
+                                         self._df)
+            if _df is not None:
+                self._df = _df
 
         from_index = max(self._viewport_range[0] - PAGE_SIZE, 0)
         to_index = max(self._viewport_range[0] + PAGE_SIZE, 0)
-        new_df_range = (from_index, to_index)
+        new_df_range = (from_index, to_index)      
+        df = self._df.copy()
 
         if triggered_by == 'viewport_changed' and \
                 self._df_range == new_df_range:
@@ -1070,6 +1103,16 @@ class sqlgridWidget(widgets.DOMWidget):
             if scroll_to_row:
                 data_to_send['scroll_to_row'] = scroll_to_row
             self.send(data_to_send)
+
+        """Select the appropriate row for sql"""
+        if self.gtype == "sql":
+            low = self._df.index[0]
+            high = self._df.index[-1]
+            if from_index == 0:
+                row = low + 1
+            else:
+                row = high - 1
+            self.change_selection(rows=[row])
 
     def _update_sort(self):
         try:
