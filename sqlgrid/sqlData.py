@@ -29,7 +29,11 @@ class sqlData():
         _df.insert(0, _index_col_name, range(self.position, self.position+len(_df)))
         return _df
 
-    def _update_table(self, _viewport_range, _df):
+    def where(self):
+        
+
+    def _update_table(self, _viewport_range, _df, widget):
+        self._widget = widget
         if _viewport_range[1] > self.page:
             # load forward
             if self.position + self.page < self.tablesize:
@@ -42,6 +46,23 @@ class sqlData():
                 overlap = 5 if self.position !=0 else 0
                 return (False, self._update_df(self._index_col_name, overlap=overlap))
         return (None,None)
+
+    def minmax(self, column):
+        minmax = (0,0)
+        with self.engine.connect() as conn:
+            statement = text(f"SELECT min(`{column}`) AS `min`, max(`{column}`) AS `max` FROM `{self.table}`")
+            minmax = conn.execute(statement).fetchone()
+        return minmax
+    
+    def distinctValuesOrdered(self, column):
+        values = []
+        with self.engine.connect() as conn:
+            statement = text(f"SELECT DISTINCT `{column}` FROM `{self.table}` ORDER BY `{column}`")
+            result = conn.execute(statement).fetchall()
+            values = [r[0] for r in result]
+        return values
+       
+        
 
 
 

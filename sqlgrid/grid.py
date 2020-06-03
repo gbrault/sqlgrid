@@ -604,7 +604,7 @@ class sqlgridWidget(widgets.DOMWidget):
     _interval_columns = List([], sync=True)
     _period_columns = List([])
     _string_columns = List([])
-    _sort_helper_columns = Dict({})
+    _sort__handle_columns = Dict({})
     _initialized = Bool(False)
     _ignore_df_changed = Bool(False)
     _unfiltered_df = Instance(pd.DataFrame)
@@ -642,6 +642,7 @@ class sqlgridWidget(widgets.DOMWidget):
         self.on_msg(self._handle_sqlgrid_msg)
         self._initialized = True
         self._handlers = _EventHandlers()
+        self.__unfiltered_df = pd.DataFrame()
 
         handlers.notify_listeners({
             'name': 'instance_created'
@@ -831,6 +832,14 @@ class sqlgridWidget(widgets.DOMWidget):
 
         """
         self._handlers.off(names, handler)
+    
+    @property
+    def _unfiltered_df(self):
+        return self.__unfiltered_df
+
+    @_unfiltered_df.setter
+    def _unfiltered_df(self, a):
+        self.__unfiltered_df = a
 
     def _update_df(self):
         self._ignore_df_changed = True
@@ -848,6 +857,7 @@ class sqlgridWidget(widgets.DOMWidget):
             self._unfiltered_df = self._df.copy()
         else:
             self._df = self.sql._update_df(self._index_col_name)
+            self._unfiltered_df = self._df.copy()
 
         self._update_table(update_columns=True, fire_data_change_event=False)
         self._ignore_df_changed = False
@@ -885,7 +895,7 @@ class sqlgridWidget(widgets.DOMWidget):
 
         if self.gtype == "sql":
             (dir,_df) = self.sql._update_table(self._viewport_range,
-                                         self._df)
+                                         self._df, self)
             if _df is not None:
                 self._df = _df
                 fire_data_change_event = True
@@ -947,7 +957,7 @@ class sqlgridWidget(widgets.DOMWidget):
         # call map(str) for all columns identified as string columns, in
         # case any are not strings already
         for col_name in self._string_columns:
-            sort_column_name = self._sort_helper_columns.get(col_name)
+            sort_column_name = self._sort__handle_columns.get(col_name)
             if sort_column_name:
                 series_to_set = df[sort_column_name]
             else:
@@ -1007,7 +1017,7 @@ class sqlgridWidget(widgets.DOMWidget):
 
         if update_columns:
             self._interval_columns = []
-            self._sort_helper_columns = {}
+            self._sort__handle_columns = {}
             self._period_columns = []
 
             # parse the schema that we just exported in order to get the
@@ -1068,7 +1078,7 @@ class sqlgridWidget(widgets.DOMWidget):
         # convert the series to a datetime series before displaying
         if len(self._period_columns) > 0:
             for col_name in self._period_columns:
-                sort_column_name = self._sort_helper_columns.get(col_name)
+                sort_column_name = self._sort__handle_columns.get(col_name)
                 if sort_column_name:
                     series_to_set = df[sort_column_name]
                 else:
@@ -1153,7 +1163,7 @@ class sqlgridWidget(widgets.DOMWidget):
     # error caused by the type of data in the column, like having multiple
     # data types in a single column).
     def _initialize_sort_column(self, col_name, to_timestamp=False):
-        sort_column_name = self._sort_helper_columns.get(col_name)
+        sort_column_name = self._sort__handle_columns.get(col_name)
         if sort_column_name:
             return sort_column_name
 
@@ -1172,7 +1182,7 @@ class sqlgridWidget(widgets.DOMWidget):
             self._unfiltered_df[sort_column_name] = \
                 sort_col_series_unfiltered.map(str)
 
-        self._sort_helper_columns[col_name] = sort_column_name
+        self._sort__handle_columns[col_name] = sort_column_name
         return sort_column_name
 
     def _handle_show_filter_dropdown(self, content):
@@ -1198,8 +1208,13 @@ class sqlgridWidget(widgets.DOMWidget):
             if 'filter_info' not in col_info or \
                     (col_info['filter_info']['min'] is None and
                      col_info['filter_info']['max'] is None):
-                col_info['slider_max'] = max(col_series)
-                col_info['slider_min'] = min(col_series)
+                if self.gtype == "sql":
+                    minmax = self.sql.minmax(col_name)
+                    col_info['slider_max'] = minmax[1]
+                    col_info['slider_min'] = minmax[0]
+                else:
+                    col_info['slider_max'] = max(col_series)
+                    col_info['slider_min'] = min(col_series)
                 self._columns[col_name] = col_info
             self.send({
                 'type': 'column_min_max_updated',
@@ -1211,8 +1226,13 @@ class sqlgridWidget(widgets.DOMWidget):
             if 'filter_info' not in col_info or \
                     (col_info['filter_info']['min'] is None and
                      col_info['filter_info']['max'] is None):
-                col_info['filter_max'] = max(col_series)
-                col_info['filter_min'] = min(col_series)
+                if self.gtype == "sql":
+                    minmax = self.sql.minmax(col_name)
+                    col_info['slider_max'] = minmax[1]
+                    col_info['slider_min'] = minmax[0]
+                else:
+                    col_info['filter_max'] = max(col_series)
+                    col_info['filter_min'] = min(col_series)
                 self._columns[col_name] = col_info
             self.send({
                 'type': 'column_min_max_updated',
@@ -1243,17 +1263,20 @@ class sqlgridWidget(widgets.DOMWidget):
                 if col_name in self._sorted_column_cache:
                     unique_list = self._sorted_column_cache[col_name]
                 else:
-                    unique = col_series.unique()
-                    if len(unique) < 500000:
-                        try:
-                            unique.sort()
-                        except TypeError:
-                            sort_col_name = \
-                                self._initialize_sort_column(col_name)
-                            col_series = df_for_unique[sort_col_name]
-                            unique = col_series.unique()
-                            unique.sort()
-                    unique_list = unique.tolist()
+                    if self.gtype == "sql":
+                        unique_list = self.sql.distinctValuesOrdered(col_name)
+                    else:
+                        unique = col_series.unique()
+                        if len(unique) < 500000:
+                            try:
+                                unique.sort()
+                            except TypeError:
+                                sort_col_name = \
+                                    self._initialize_sort_column(col_name)
+                                col_series = df_for_unique[sort_col_name]
+                                unique = col_series.unique()
+                                unique.sort()
+                        unique_list = unique.tolist()
                     self._sorted_column_cache[col_name] = unique_list
 
             if content['search_val'] is not None:
@@ -1348,7 +1371,7 @@ class sqlgridWidget(widgets.DOMWidget):
 
     # get any column from a dataframe, including index columns
     def _get_col_series_from_df(self, col_name, df, level_vals=False):
-        sort_column_name = self._sort_helper_columns.get(col_name)
+        sort_column_name = self._sort__handle_columns.get(col_name)
         if sort_column_name:
             return df[sort_column_name]
 
@@ -1457,144 +1480,184 @@ class sqlgridWidget(widgets.DOMWidget):
         self._update_table(triggered_by='change_filter')
         self._ignore_df_changed = False
 
+    def _handle_edit_cell(self, content):
+        col_info = self._columns[content['column']]
+        try:
+            location = (self._df.index[content['row_index']],
+                        content['column'])
+            old_value = self._df.loc[location]
+
+            val_to_set = content['value']
+            if col_info['type'] == 'datetime':
+                val_to_set = pd.to_datetime(val_to_set)
+                # pandas > 18.0 compat
+                if old_value.tz != val_to_set.tz:
+                    val_to_set = val_to_set.tz_convert(tz=old_value.tz)
+
+            self._df.loc[location] = val_to_set
+
+            query = self._unfiltered_df[self._index_col_name] == \
+                content['unfiltered_index']
+            self._unfiltered_df.loc[query, content['column']] = val_to_set
+            self._notify_listeners({
+                'name': 'cell_edited',
+                'index': location[0],
+                'column': location[1],
+                'old': old_value,
+                'new': val_to_set,
+                'source': 'gui'
+            })
+            return True
+
+        except (ValueError, TypeError):
+            msg = "Error occurred while attempting to edit the " \
+                    "DataFrame. Check the notebook server logs for more " \
+                    "information."
+            self.log.exception(msg)
+            self.send({
+                'type': 'show_error',
+                'error_msg': msg,
+                'triggered_by': 'add_row'
+            })
+            return False
+
+    def _handle_change_viewport(self,content):
+        old_viewport_range = self._viewport_range
+        self._viewport_range = (content['top'], content['bottom'])
+
+        # if the viewport didn't change, do nothing
+        if old_viewport_range == self._viewport_range:
+            return False
+
+        self._update_table(triggered_by='change_viewport')
+        self._notify_listeners({
+            'name': 'viewport_changed',
+            'old': old_viewport_range,
+            'new': self._viewport_range
+        })
+
+        return True
+
+    def _handle_add_row(self,content):
+        row_index = self._duplicate_last_row()
+        self._notify_listeners({
+            'name': 'row_added',
+            'index': row_index,
+            'source': 'gui'
+        })
+        return True
+
+    def _handle_remove_row(self, content):
+        removed_indices = self._remove_rows()
+        self._notify_listeners({
+            'name': 'row_removed',
+            'indices': removed_indices,
+            'source': 'gui'
+        })
+        return True
+
+    def _handle_change_filter_viewport(self, content):
+        col_name = content['field']
+        col_info = self._columns[col_name]
+        col_filter_table = self._filter_tables[col_name]
+
+        from_index = max(content['top'] - PAGE_SIZE, 0)
+        to_index = max(content['top'] + PAGE_SIZE, 0)
+
+        old_viewport_range = col_info['viewport_range']
+        col_info['values'] = col_filter_table[from_index:to_index]
+        col_info['value_range'] = (from_index, to_index)
+        col_info['viewport_range'] = (content['top'], content['bottom'])
+
+        self._columns[col_name] = col_info
+        self.send({
+            'type': 'update_data_view_filter',
+            'field': col_name,
+            'col_info': col_info
+        })
+        self._notify_listeners({
+            'name': 'text_filter_viewport_changed',
+            'column': col_name,
+            'old': old_viewport_range,
+            'new': col_info['viewport_range']
+        })
+        return True
+
+    def _handle_change_filter_pre(self,content):
+        self._handle_change_filter(content)
+        self._notify_listeners({
+            'name': 'filter_changed',
+            'column': content['field']
+        })
+        return True
+
+
+    def _handle_change_sort(self, content):
+        old_column = self._sort_field
+        old_ascending = self._sort_ascending
+        self._sort_field = content['sort_field']
+        self._sort_ascending = content['sort_ascending']
+        self._sorted_column_cache = {}
+        self._update_sort()
+        self._update_table(triggered_by='change_sort')
+        self._notify_listeners({
+            'name': 'sort_changed',
+            'old': {
+                'column': old_column,
+                'ascending': old_ascending
+            },
+            'new': {
+                'column': self._sort_field,
+                'ascending': self._sort_ascending
+            }
+        })
+        return True
+
+    def _handle_show_filter_dropdown_pre(self, content):
+        self._handle_show_filter_dropdown(content)
+        self._notify_listeners({
+            'name': 'filter_dropdown_shown',
+            'column': content['field']
+        })
+        return True
+ 
     def _handle_sqlgrid_msg(self, widget, content, buffers=None):
         try:
-            self._handle_sqlgrid_msg_helper(content)
+            self._handle_handle_sqlgrid_msg(content)
         except Exception as e:
             self.log.error(e)
             self.log.exception("Unhandled exception while handling msg")
 
-    def _handle_sqlgrid_msg_helper(self, content):
+    def _handle_handle_sqlgrid_msg(self, content):
         """Handle incoming messages from the sqlgridView"""
         if 'type' not in content:
             return
-
         if content['type'] == 'edit_cell':
-            col_info = self._columns[content['column']]
-            try:
-                location = (self._df.index[content['row_index']],
-                            content['column'])
-                old_value = self._df.loc[location]
-
-                val_to_set = content['value']
-                if col_info['type'] == 'datetime':
-                    val_to_set = pd.to_datetime(val_to_set)
-                    # pandas > 18.0 compat
-                    if old_value.tz != val_to_set.tz:
-                        val_to_set = val_to_set.tz_convert(tz=old_value.tz)
-
-                self._df.loc[location] = val_to_set
-
-                query = self._unfiltered_df[self._index_col_name] == \
-                    content['unfiltered_index']
-                self._unfiltered_df.loc[query, content['column']] = val_to_set
-                self._notify_listeners({
-                    'name': 'cell_edited',
-                    'index': location[0],
-                    'column': location[1],
-                    'old': old_value,
-                    'new': val_to_set,
-                    'source': 'gui'
-                })
-
-            except (ValueError, TypeError):
-                msg = "Error occurred while attempting to edit the " \
-                      "DataFrame. Check the notebook server logs for more " \
-                      "information."
-                self.log.exception(msg)
-                self.send({
-                    'type': 'show_error',
-                    'error_msg': msg,
-                    'triggered_by': 'add_row'
-                })
+            if not self._handle_edit_cell(content):
                 return
         elif content['type'] == 'change_selection':
             self._change_selection(content['rows'], 'gui')
         elif content['type'] == 'change_viewport':
-            old_viewport_range = self._viewport_range
-            self._viewport_range = (content['top'], content['bottom'])
-
-            # if the viewport didn't change, do nothing
-            if old_viewport_range == self._viewport_range:
+            if not self._handle_change_viewport(content):
                 return
-
-            self._update_table(triggered_by='change_viewport')
-            self._notify_listeners({
-                'name': 'viewport_changed',
-                'old': old_viewport_range,
-                'new': self._viewport_range
-            })
-
         elif content['type'] == 'add_row':
-            row_index = self._duplicate_last_row()
-            self._notify_listeners({
-                'name': 'row_added',
-                'index': row_index,
-                'source': 'gui'
-            })
+            if not self._handle_add_row(self, content):
+                return
         elif content['type'] == 'remove_row':
-            removed_indices = self._remove_rows()
-            self._notify_listeners({
-                'name': 'row_removed',
-                'indices': removed_indices,
-                'source': 'gui'
-            })
+            if not self._handle_remove_row(content):
+                return
         elif content['type'] == 'change_filter_viewport':
-            col_name = content['field']
-            col_info = self._columns[col_name]
-            col_filter_table = self._filter_tables[col_name]
-
-            from_index = max(content['top'] - PAGE_SIZE, 0)
-            to_index = max(content['top'] + PAGE_SIZE, 0)
-
-            old_viewport_range = col_info['viewport_range']
-            col_info['values'] = col_filter_table[from_index:to_index]
-            col_info['value_range'] = (from_index, to_index)
-            col_info['viewport_range'] = (content['top'], content['bottom'])
-
-            self._columns[col_name] = col_info
-            self.send({
-                'type': 'update_data_view_filter',
-                'field': col_name,
-                'col_info': col_info
-            })
-            self._notify_listeners({
-                'name': 'text_filter_viewport_changed',
-                'column': col_name,
-                'old': old_viewport_range,
-                'new': col_info['viewport_range']
-            })
+            if not self._handle_change_filter_viewport(content):
+                return
         elif content['type'] == 'change_sort':
-            old_column = self._sort_field
-            old_ascending = self._sort_ascending
-            self._sort_field = content['sort_field']
-            self._sort_ascending = content['sort_ascending']
-            self._sorted_column_cache = {}
-            self._update_sort()
-            self._update_table(triggered_by='change_sort')
-            self._notify_listeners({
-                'name': 'sort_changed',
-                'old': {
-                    'column': old_column,
-                    'ascending': old_ascending
-                },
-                'new': {
-                    'column': self._sort_field,
-                    'ascending': self._sort_ascending
-                }
-            })
+            if not self._handle_change_sort(content):
+                return
         elif content['type'] == 'show_filter_dropdown':
-            self._handle_show_filter_dropdown(content)
-            self._notify_listeners({
-                'name': 'filter_dropdown_shown',
-                'column': content['field']
-            })
+            if not self._handle_show_filter_dropdown_pre(content):
+                return
         elif content['type'] == 'change_filter':
-            self._handle_change_filter(content)
-            self._notify_listeners({
-                'name': 'filter_changed',
-                'column': content['field']
-            })
+            if not self._handle_change_filter_pre(content):
+                return
 
     def _notify_listeners(self, event):
         # notify listeners at the module level
@@ -1612,7 +1675,7 @@ class sqlgridWidget(widgets.DOMWidget):
 
         :rtype: DataFrame
         """
-        col_names_to_drop = list(self._sort_helper_columns.values())
+        col_names_to_drop = list(self._sort__handle_columns.values())
         col_names_to_drop.append(self._index_col_name)
         return self._df.drop(col_names_to_drop, axis=1)
 
@@ -1814,7 +1877,7 @@ class sqlgridWidget(widgets.DOMWidget):
         self._update_table(triggered_by='remove_row')
         return selected_names
 
-    def change_selection(self, rows=[]):
+    def _handle_change_selection(self, rows=[]):
         """
         Select a row (or rows) in the UI.  The indices of the
         rows to select are provided via the optional ``rows`` argument.
