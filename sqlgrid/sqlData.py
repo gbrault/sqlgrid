@@ -50,8 +50,9 @@ class sqlData():
                 else:
                      _order_by = _order_by + " DESC"
         if len(_order_by) != 0:
-            with self.out:
-                print(f"order_by = {_order_by}")
+            pass
+            #with self.out:
+                #print(f"order_by = {_order_by}")
 
         return _order_by
 
@@ -84,8 +85,8 @@ class sqlData():
                             _where = _where + f"`{col}` IN (" + ",".join(incol) + ")"
         if len(_where) != 0:
             _where = " WHERE " + _where
-            with self.out:
-                print(f"where = {_where}")
+            #with self.out:
+                #print(f"where = {_where}")
         return _where
 
     def _update_table(self, _viewport_range, _df, widget):
