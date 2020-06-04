@@ -860,6 +860,15 @@ class sqlgridWidget(widgets.DOMWidget):
             self._unfiltered_df = self._df.copy()
 
         self._update_table(update_columns=True, fire_data_change_event=False)
+        
+        changed = False
+        for col in self._columns:
+            if self._columns[col]['type'] == 'string':
+                self._df[col] = self._df[col].fillna('None')
+                changed = True
+        if changed:
+            self._unfiltered_df = self._df.copy()
+
         self._ignore_df_changed = False
 
     def _rebuild_widget(self):
@@ -894,6 +903,9 @@ class sqlgridWidget(widgets.DOMWidget):
                       fire_data_change_event=True):
 
         if self.gtype == "sql":
+            if triggered_by == 'change_sort_sql':
+                self.sql.position = 0
+                self._viewport_range = (0,PAGE_SIZE)
             (dir,_df) = self.sql._update_table(self._viewport_range,
                                          self._df, self)
             if _df is not None:
@@ -1188,6 +1200,7 @@ class sqlgridWidget(widgets.DOMWidget):
     def _handle_show_filter_dropdown(self, content):
         col_name = content['field']
         col_info = self._columns[col_name]
+
         if 'filter_info' in col_info and 'selected' in col_info['filter_info']:
             df_for_unique = self._unfiltered_df
         else:
@@ -1260,11 +1273,15 @@ class sqlgridWidget(widgets.DOMWidget):
             if col_info['type'] == 'any':
                 unique_list = col_series.cat.categories
             else:
-                if col_name in self._sorted_column_cache:
-                    unique_list = self._sorted_column_cache[col_name]
+                if self.gtype == "sql":
+                    if col_name in self._sorted_column_cache:
+                        unique_list = self._sorted_column_cache[col_name]
+                    else:
+                        unique_list = self.sql.distinctValuesOrdered(col_name,'text')
+                    self._sorted_column_cache[col_name] = unique_list
                 else:
-                    if self.gtype == "sql":
-                        unique_list = self.sql.distinctValuesOrdered(col_name)
+                    if col_name in self._sorted_column_cache:
+                        unique_list = self._sorted_column_cache[col_name]
                     else:
                         unique = col_series.unique()
                         if len(unique) < 500000:
@@ -1451,6 +1468,13 @@ class sqlgridWidget(widgets.DOMWidget):
         col_info['filter_info'] = content['filter_info']
         columns[col_name] = col_info
 
+        if self.gtype == "sql":
+            self._columns = columns
+            self.sql.position = 0
+            self._update_df()
+            # self._update_table(triggered_by='change_filter')
+            # self.__unfiltered_df = self.sql._unfiltered_df()
+
         conditions = []
         for key, value in columns.items():
             if 'filter_info' in value:
@@ -1598,7 +1622,13 @@ class sqlgridWidget(widgets.DOMWidget):
         self._sort_field = content['sort_field']
         self._sort_ascending = content['sort_ascending']
         self._sorted_column_cache = {}
-        self._update_sort()
+        if self.gtype == 'sql':
+            #with self.sql.out:
+                # print(f"change sort to:{self._sort_field}")
+            self._update_table(scroll_to_row=1, triggered_by='change_sort_sql')
+            self._update_sort()
+        else:
+            self._update_sort()
         self._update_table(triggered_by='change_sort')
         self._notify_listeners({
             'name': 'sort_changed',
