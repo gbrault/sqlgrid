@@ -35,7 +35,7 @@ if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
 else:
     from . import pd_json
 
-from ipywidgets import HBox, VBox, Layout, Button    
+from ipywidgets import HBox, VBox, Layout, Button, Output    
 
 
 class _DefaultSettings(object):
@@ -1983,14 +1983,66 @@ class gridctl():
     def __init__(self, data, grid_options=None):
         """
         """
+        self.data = data
+        self.grid_options = grid_options
         self.menu = Button(icon='bars',
+                      tooltip="Show/Hide Column Setup",
                       layout=Layout(width="5%"))
+        self.menu.on_click(self.menu_click)
         if grid_options is None:
-            self._grid = show_grid(data)
+            self._grid = show_grid(self.data)
         else:
-            self._grid = show_grid(data, grid_options=grid_options )
-        
-        self._gridctl = VBox([self.menu,
-                              HBox([self._grid],layout=Layout(width="200vw"))
+            self._grid = show_grid(self.data, grid_options=grid_options)
+
+        exclude = ['index',sqlgridWidget._index_col_name.default_value]
+        columndata = {"name": [self._grid._columns[col]['name'] for col in self._grid._columns if col not in exclude],
+                "type": [self._grid._columns[col]['type'] for col in self._grid._columns if col not in exclude],
+                "origin": [self._grid._columns[col]['position'] for col in self._grid._columns if col not in exclude],
+                "astype": [self._grid._columns[col]['type'] for col in self._grid._columns if col not in exclude],
+                "position": [self._grid._columns[col]['position'] for col in self._grid._columns if col not in exclude],
+                "visible": [True for col in self._grid._columns  if col not in exclude]
+               }
+        col_defs = {
+            'name':{'editable':False},
+            'type':{'editable':False},
+            'origin':{'editable':False},
+            'astype':{'editable':True},
+            'position':{'editable':True},
+            'visible':{'editable':True},
+        }
+        self._columns = show_grid(pd.DataFrame(data=columndata),column_definitions=col_defs)
+
+        self._columns.on('cell_edited',self.columnSetup)
+
+        self.output = Output()
+
+        self._gridctl = VBox([VBox([self.menu,self._columns]),
+                              self.output
                             ])
+        self._columns.layout.display = 'none'
+        
+        with self.output:
+            display(HBox([self._grid],layout=Layout(width="200vw")))
+    
+    def menu_click(self,b):
+        if self._columns.layout.display is None:
+            self._columns.layout.display = 'none'
+        else:
+            self._columns.layout.display = None
+
+    def columnSetup(self, event, grid):
+        df = self._columns._df
+        columns = []
+        for index, rows in df.iterrows():
+            if rows['visible']:
+                 columns.append(rows['name'])
+
+        if isinstance(self.data, sqlData):
+            self.data.set_filter(columns)
+            self._grid = show_grid(self.data, grid_options=self.grid_options)
+            with self.output:
+                self.output.clear_output()
+                display(HBox([self._grid],layout=Layout(width="200vw")))
+
+
 

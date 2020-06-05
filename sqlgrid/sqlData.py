@@ -8,7 +8,7 @@ class sqlData():
     New type accepted by the show_grid function which creates a Grid Widget
     import ipdb; ipdb.set_trace() (breakpoint!)
     """
-    def __init__(self, path=None, table=None, page=100, out=None):
+    def __init__(self, path=None, table=None, page=100, out=None, filter=None):
         self.path = path
         self.page = page
         self.engine = None
@@ -19,12 +19,36 @@ class sqlData():
             with self.engine.connect() as conn:
                 statement = text(f"SELECT count(*) FROM `{self.table}`")
                 self.tablesize = conn.execute(statement).fetchone()[0]
+                statement = text(f"SELECT * FROM `{self.table}` LIMIT 1")
+                self.columnNames = conn.execute(statement).fetchone().keys()
         self._widget = None
         self.out = out
+        self.filter = filter
+
+    def set_filter(self, filter):
+        self.position = 0
+        self.filter = filter
+
+    def getColumns(self):
+        _filter = ""
+        if self.filter is None or len(self.filter) == 0:
+            _filter = "*"
+            return _filter
+
+        if 'index' in self.columnNames:
+            _filter = "`index`"
+
+        for col in self.filter:
+            if _filter == "":
+                _filter = f"`{col}`"
+            else:
+                _filter = _filter + f", `{col}`"
+
+        return _filter
 
     def _update_df(self, _index_col_name, overlap=0):
         self._index_col_name = _index_col_name
-        _df = pd.read_sql(f"SELECT * FROM `{self.table}` {self.where()} {self.order_by()} LIMIT {self.page+abs(overlap)} OFFSET {self.position+overlap}",
+        _df = pd.read_sql(f"SELECT {self.getColumns()} FROM `{self.table}` {self.where()} {self.order_by()} LIMIT {self.page+abs(overlap)} OFFSET {self.position+overlap}",
                           self.engine
                          )
         # insert a column which we'll use later to map edits from
