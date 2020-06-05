@@ -6,6 +6,7 @@ class sqlData():
     """
     sqlgrid class is the adapter between sqlgridWidget and an SQL DataSource
     New type accepted by the show_grid function which creates a Grid Widget
+    import ipdb; ipdb.set_trace() (breakpoint!)
     """
     def __init__(self, path=None, table=None, page=100, out=None):
         self.path = path
@@ -30,16 +31,7 @@ class sqlData():
         # a filtered version of this df back to the unfiltered version
         _df.insert(0, _index_col_name, range(self.position, self.position+len(_df)))
         return _df
-
-    def _unfiltered_df(self):
-        # import ipdb; ipdb.set_trace() (breakpoint don't work there!)
-        if self.out is not None:
-            with self.out:
-                print(f"where = {self.where()}")
-
-        self.position = 0
-        return self._update_df(self._index_col_name)
-    
+     
     def order_by(self):
         _order_by = ""
         if self._widget is not None:
@@ -83,10 +75,23 @@ class sqlData():
                                 _where = _where + f"`{col}` IS NULL"
                         else:
                             _where = _where + f"`{col}` IN (" + ",".join(incol) + ")"
+            if 'filter_info' in columns[col] and (columns[col]['filter_info']['type'] == 'date' or columns[col]['filter_info']['type'] == 'slider'):
+                if columns[col]['filter_info']['min'] is not None \
+                    and columns[col]['filter_info']['max'] is not None:
+                    _where = _where + f"( `{col}` BETWEEN {columns[col]['filter_info']['min']} AND {columns[col]['filter_info']['max']})"
+                if columns[col]['filter_info']['min'] is None \
+                    and columns[col]['filter_info']['max'] is not None:
+                    _where = _where + f"( `{col}` <= {columns[col]['filter_info']['max']})"
+                if columns[col]['filter_info']['min'] is not None \
+                    and columns[col]['filter_info']['max'] is None:
+                    _where = _where + f"( `{col}` >= {columns[col]['filter_info']['min']})"
+                        
+
         if len(_where) != 0:
             _where = " WHERE " + _where
-            #with self.out:
+            with self.out:
                 #print(f"where = {_where}")
+                pass
         return _where
 
     def _update_table(self, _viewport_range, _df, widget):

@@ -1472,8 +1472,6 @@ class sqlgridWidget(widgets.DOMWidget):
             self._columns = columns
             self.sql.position = 0
             self._update_df()
-            # self._update_table(triggered_by='change_filter')
-            # self.__unfiltered_df = self.sql._unfiltered_df()
 
         conditions = []
         for key, value in columns.items():
