@@ -9,7 +9,7 @@ from .grid import (
     set_grid_option,
     show_grid,
     sqlgridWidget,
-    sqlgridWidget,
+    gridctl,
 )
 
 
@@ -33,5 +33,5 @@ __all__ = [
     "set_grid_option",
     "show_grid",
     "sqlgridWidget",
-    "sqlgridWidget",
+    "gridctl",
 ]

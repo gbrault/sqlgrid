@@ -35,6 +35,8 @@ if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
 else:
     from . import pd_json
 
+from ipywidgets import HBox, VBox, Layout, Button    
+
 
 class _DefaultSettings(object):
 
@@ -133,7 +135,6 @@ class _EventHandlers(object):
 
 defaults = _DefaultSettings()
 handlers = _EventHandlers()
-
 
 def set_defaults(show_toolbar=None,
                  precision=None,
@@ -1973,4 +1974,23 @@ class sqlgridWidget(widgets.DOMWidget):
             'option_name': option_name,
             'option_value': option_value
         })
+
+class gridctl():
+    """
+    controller with associated grid
+    """
+
+    def __init__(self, data, grid_options=None):
+        """
+        """
+        self.menu = Button(icon='bars',
+                      layout=Layout(width="5%"))
+        if grid_options is None:
+            self._grid = show_grid(data)
+        else:
+            self._grid = show_grid(data, grid_options=grid_options )
+        
+        self._gridctl = VBox([self.menu,
+                              HBox([self._grid],layout=Layout(width="200vw"))
+                            ])
 
