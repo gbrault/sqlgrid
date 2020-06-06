@@ -69,8 +69,8 @@ class NPM(Command):
     node_modules = join(node_root, 'node_modules')
 
     targets = [
-        join(here, 'qgrid', 'static', 'extension.js'),
-        join(here, 'qgrid', 'static', 'index.js')
+        join(here, 'sqlgrid', 'static', 'extension.js'),
+        join(here, 'sqlgrid', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -81,7 +81,7 @@ class NPM(Command):
 
     def has_npm(self):
         try:
-            check_call(['npm', '--version'])
+            check_call(['npm', '--version'], shell=True)
             return True
         except:
             return False
@@ -101,7 +101,7 @@ class NPM(Command):
 
         if self.should_run_npm_install():
             log.info("Installing build dependencies with npm.  This may take a while...")
-            check_call(['npm', 'install'], cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
+            check_call(['npm', 'install'], shell=True, cwd=node_root, stdout=sys.stdout, stderr=sys.stderr)
             os.utime(self.node_modules, None)
 
         for t in self.targets:
@@ -115,7 +115,7 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(join(here, 'qgrid', '_version.py')) as f:
+with open(join(here, 'sqlgrid', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 def read_requirements(basename):
@@ -132,7 +132,7 @@ def package_files(directory):
             paths.append(os.path.join(path, filename))
     return paths
 
-data_files = package_files('qgrid/static')
+data_files = package_files('sqlgrid/static')
 
 
 def extras_require():
@@ -144,13 +144,13 @@ def extras_require():
     }
 
 setup_args = {
-    'name': 'qgrid',
+    'name': 'sqlgrid',
     'version': version_ns['__version__'],
     'description': 'An Interactive Grid for Sorting and Filtering DataFrames in Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/qgrid', data_files),
+        ('share/jupyter/nbextensions/sqlgrid', data_files),
     ],
     'install_requires': reqs,
     'extras_require': extras_require(),
@@ -165,7 +165,7 @@ setup_args = {
 
     'author': 'Quantopian Inc.',
     'author_email': 'opensource@quantopian.com',
-    'url': 'https://github.com/quantopian/qgrid',
+    'url': 'https://github.com/quantopian/sqlgrid',
     'license': 'Apache-2.0',
     'keywords': [
         'ipython',
