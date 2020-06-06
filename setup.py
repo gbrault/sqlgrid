@@ -69,8 +69,8 @@ class NPM(Command):
     node_modules = join(node_root, 'node_modules')
 
     targets = [
-        join(here, 'qgrid', 'static', 'extension.js'),
-        join(here, 'qgrid', 'static', 'index.js')
+        join(here, 'sqlgrid', 'static', 'extension.js'),
+        join(here, 'sqlgrid', 'static', 'index.js')
     ]
 
     def initialize_options(self):
@@ -115,7 +115,7 @@ class NPM(Command):
         update_package_data(self.distribution)
 
 version_ns = {}
-with open(join(here, 'qgrid', '_version.py')) as f:
+with open(join(here, 'sqlgrid', '_version.py')) as f:
     exec(f.read(), {}, version_ns)
 
 def read_requirements(basename):
@@ -132,7 +132,7 @@ def package_files(directory):
             paths.append(os.path.join(path, filename))
     return paths
 
-data_files = package_files('qgrid/static')
+data_files = package_files('sqlgrid/static')
 
 
 def extras_require():
@@ -144,13 +144,13 @@ def extras_require():
     }
 
 setup_args = {
-    'name': 'qgrid',
+    'name': 'sqlgrid',
     'version': version_ns['__version__'],
     'description': 'An Interactive Grid for Sorting and Filtering DataFrames in Jupyter Notebook',
     'long_description': LONG_DESCRIPTION,
     'include_package_data': True,
     'data_files': [
-        ('share/jupyter/nbextensions/qgrid', data_files),
+        ('share/jupyter/nbextensions/sqlgrid', data_files),
     ],
     'install_requires': reqs,
     'extras_require': extras_require(),
@@ -163,9 +163,9 @@ setup_args = {
         'jsdeps': NPM,
     },
 
-    'author': 'Quantopian Inc.',
-    'author_email': 'opensource@quantopian.com',
-    'url': 'https://github.com/quantopian/qgrid',
+    'author': 'Sea Dev',
+    'author_email': 'gbrault@seadev.org',
+    'url': 'https://github.com/seadev/sqlgrid',
     'license': 'Apache-2.0',
     'keywords': [
         'ipython',
@@ -180,12 +180,7 @@ setup_args = {
         'Topic :: Office/Business :: Financial',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Multimedia :: Graphics',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.8',
     ],
 }
 
