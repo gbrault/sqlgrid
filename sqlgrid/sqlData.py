@@ -90,7 +90,7 @@ class sqlData():
                         if "'None'" in incol:
                             incol.remove("'None'")
                             addNone = True
-                        if len(_where):
+                        if len(_where) > 0:
                             _where = _where + " AND "
                         if addNone:
                             if len(incol) != 0:
@@ -102,12 +102,18 @@ class sqlData():
             if 'filter_info' in columns[col] and (columns[col]['filter_info']['type'] == 'date' or columns[col]['filter_info']['type'] == 'slider'):
                 if columns[col]['filter_info']['min'] is not None \
                     and columns[col]['filter_info']['max'] is not None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
                     _where = _where + f"( `{col}` BETWEEN {columns[col]['filter_info']['min']} AND {columns[col]['filter_info']['max']})"
                 if columns[col]['filter_info']['min'] is None \
                     and columns[col]['filter_info']['max'] is not None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
                     _where = _where + f"( `{col}` <= {columns[col]['filter_info']['max']})"
                 if columns[col]['filter_info']['min'] is not None \
                     and columns[col]['filter_info']['max'] is None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
                     _where = _where + f"( `{col}` >= {columns[col]['filter_info']['min']})"
                         
 

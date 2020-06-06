@@ -35,3 +35,6 @@ sqlgrid/static/
 
 # VISUAL STUDIO CODE (IDE-related files)
 .vscode
+
+# data
+data/
