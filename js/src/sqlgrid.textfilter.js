@@ -19,6 +19,7 @@ class TextFilter extends filter_base.FilterBase {
         </div>
         <div class='dropdown-footer'>
           <a class='select-all-link' href='#'>Select All</a>
+          <a class='date-link' href='#'>|Date</a>
           <a class='reset-link' href='#'>Reset</a>
         </div>
       </div>
@@ -223,6 +224,14 @@ class TextFilter extends filter_base.FilterBase {
     this.filter_grid.onKeyDown.subscribe(
         (e, args) => this.handle_grid_key_down(e, args)
     );
+
+    this.filter_elem.find("a.date-link").click((e) => {
+      this.ignore_selection_changed = true;
+      this.reset_filter();
+      this.ignore_selection_changed = false;
+      this.send_filter_changed_to_date();
+      return false;
+    });
 
     this.filter_elem.find("a.select-all-link").click((e) => {
       this.ignore_selection_changed = true;

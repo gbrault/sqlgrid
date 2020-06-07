@@ -502,6 +502,11 @@
   float: right;
 }
 
+.q-grid-container .grid-filter .dropdown-footer a.date-link {
+  padding: 0px;
+  float: right;
+}
+
 .q-grid-container .grid-filter .dropdown-footer a.select-all-link {
   padding: 0px;
 }

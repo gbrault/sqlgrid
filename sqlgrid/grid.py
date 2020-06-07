@@ -1694,6 +1694,8 @@ class sqlgridWidget(widgets.DOMWidget):
         elif content['type'] == 'change_filter':
             if not self._handle_change_filter_pre(content):
                 return
+        else:
+            self.log.error(f"Client message {content['type']} ?")
 
     def _notify_listeners(self, event):
         # notify listeners at the module level

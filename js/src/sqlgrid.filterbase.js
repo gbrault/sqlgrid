@@ -180,6 +180,21 @@ class FilterBase {
     this.widget_model.send(msg);
   }
 
+  send_filter_changed_to_date() {
+    if (this.is_active()){
+      this.filter_btn.addClass("filter-active");
+    } else {
+      this.filter_btn.removeClass("filter-active");
+    }
+
+    var msg = {
+      'type': 'change_filter_to_date',
+      'field': this.field,
+      'filter_info': this.get_filter_info()
+    };
+    this.widget_model.send(msg);
+  }
+
   handle_body_mouse_down(e) {
     if (this.filter_elem && this.filter_elem[0] != e.target && !$.contains(this.filter_elem[0], e.target) &&
         !$.contains(this.filter_btn[0], e.target) &&
