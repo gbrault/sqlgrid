@@ -849,7 +849,7 @@ class sqlgridWidget(widgets.DOMWidget):
     def _unfiltered_df(self, a):
         self.__unfiltered_df = a
 
-    def _update_df(self):
+    def _update_df(self,fire_data_change_event=False):
         self._ignore_df_changed = True
 
         if self.gtype == 'df':
@@ -867,7 +867,7 @@ class sqlgridWidget(widgets.DOMWidget):
             self._df = self.sql._update_df(self._index_col_name)
             self._unfiltered_df = self._df.copy()
 
-        self._update_table(update_columns=True, fire_data_change_event=False)
+        self._update_table(update_columns=True, fire_data_change_event=fire_data_change_event)
         
         changed = False
         for col in self._columns:
@@ -879,8 +879,8 @@ class sqlgridWidget(widgets.DOMWidget):
 
         self._ignore_df_changed = False
 
-    def _rebuild_widget(self):
-        self._update_df()
+    def _rebuild_widget(self,fire_data_change_event=False):
+        self._update_df(fire_data_change_event=fire_data_change_event)
         self.send({'type': 'draw_table'})
 
     def _df_changed(self):
@@ -1249,8 +1249,8 @@ class sqlgridWidget(widgets.DOMWidget):
                      col_info['filter_info']['max'] is None):
                 if self.gtype == "sql":
                     minmax = self.sql.minmax(col_name)
-                    col_info['slider_max'] = minmax[1]
-                    col_info['slider_min'] = minmax[0]
+                    col_info['filter_max'] = minmax[1]
+                    col_info['filter_min'] = minmax[0]
                 else:
                     col_info['filter_max'] = max(col_series)
                     col_info['filter_min'] = min(col_series)
@@ -1657,6 +1657,19 @@ class sqlgridWidget(widgets.DOMWidget):
         })
         return True
  
+    def _handle_change_filter_to_date(self, content):
+        if not self._initialized:
+            return
+        if self.gtype == "sql":
+            try:
+                tmp = pd.to_datetime(self._df[content['field']],errors='raise')
+            except:
+                self.log.error(f"Cannot convert column data to date!")
+                return False
+            self.sql.add_to_convert((content['field'],"date"))
+            self._rebuild_widget(fire_data_change_event=True)
+        return True
+
     def _handle_sqlgrid_msg(self, widget, content, buffers=None):
         try:
             self._handle_handle_sqlgrid_msg(content)
@@ -1693,6 +1706,9 @@ class sqlgridWidget(widgets.DOMWidget):
                 return
         elif content['type'] == 'change_filter':
             if not self._handle_change_filter_pre(content):
+                return
+        elif content['type'] == 'change_filter_to_date':
+            if not self._handle_change_filter_to_date(content):
                 return
         else:
             self.log.error(f"Client message {content['type']} ?")

@@ -49,6 +49,26 @@ class sqlData():
         self._widget = None
         self.out = out
         self.filter = filter
+        self.convert = []
+
+    def add_to_convert(self,item):
+        found = False
+        for (col,otype) in self.convert:
+            if col == item[0]:
+                found = True
+                break
+        if not found:
+            self.convert.append(item)
+    
+    def remove_from_convert(self, colname):
+        index = -1
+        i = 0
+        for (col,otype) in self.convert:
+            if col == colname:
+                break
+            i += 1
+        if i != -1:
+            del self.convert[i]
 
     def set_filter(self, filter):
         self.position = 0
@@ -70,18 +90,57 @@ class sqlData():
                 An SQL compliant, comma separated and backtick quoted, list of columns
         """
         _filter = ""
+        convertkeys = [c[0] for c in self.convert]
         if self.filter is None or len(self.filter) == 0:
-            _filter = "*"
-            return _filter
+            if len(self.convert) == 0:
+                _filter = "*"
+                return _filter
+            else:                
+                for col in self.columnNames:
+                    if col in convertkeys:
+                        i = convertkeys.index(col)
+                        otype = self.convert[i][1]
+                        token = ""
+                        if otype == "date":
+                            token = f"DATE(`{col}`) AS `{col}`"                        
+                    else:
+                        token = col
+                    if len(token) !=0:
+                        if len(_filter) == 0:
+                            if token.startswith("DATE"):
+                                _filter = token
+                            else:
+                                _filter = f"`{token}`"
+                        else:
+                            if token.startswith("DATE"):
+                                _filter += f",{token}"
+                            else:                                
+                                _filter += f",`{token}`"
+                return _filter
 
         if 'index' in self.columnNames:
             _filter = "`index`"
 
         for col in self.filter:
-            if _filter == "":
-                _filter = f"`{col}`"
+            if col in convertkeys:
+                i = convertkeys.index(col)
+                otype = self.convert[i][1]
+                token = ""
+                if otype == "date":
+                    token = f"DATE(`{col}`) AS `{col}`"                        
             else:
-                _filter = _filter + f", `{col}`"
+                token = col
+            if len(token) !=0:
+                if len(_filter) == 0:
+                    if token.startswith("DATE"):
+                        _filter = token
+                    else:
+                        _filter = f"`{token}`"
+                else:
+                    if token.startswith("DATE"):
+                        _filter += f",{token}"
+                    else:                                
+                        _filter += f",`{token}`"            
 
         return _filter
 
@@ -121,6 +180,10 @@ class sqlData():
         _df = pd.read_sql(f"SELECT {self.getColumns()} FROM `{self.table}` {self.where()} {self.order_by()} LIMIT {self.page+abs(overlap)} OFFSET {self.position+overlap}",
                           self.engine
                          )
+        # convert
+        for (col,otype) in self.convert:
+            if otype == 'date':
+                _df[col] = pd.to_datetime(_df[col])
         # insert a column which we'll use later to map edits from
         # a filtered version of this df back to the unfiltered version
         _df.insert(0, _index_col_name, range(self.position, self.position+len(_df)))
@@ -182,7 +245,14 @@ class sqlData():
             return _where
         columns = self._widget._columns
         _filter_tables = self._widget._filter_tables
+        convertkeys = [c[0] for c in self.convert]
         for col in list(columns.keys()):
+            token = f"`{col}`"
+            if col in convertkeys:
+                i = convertkeys.index(col)
+                otype = self.convert[i][1]
+                if otype == "date":
+                    token = f"DATE(`{col}`)"
             if col in _filter_tables and col not in exclude and 'filter_info' in columns[col]:
                 if columns[col]['filter_info']['type'] == 'text' \
                         and 'selected' in columns[col]['filter_info'] \
@@ -198,27 +268,43 @@ class sqlData():
                             _where = _where + " AND "
                         if addNone:
                             if len(incol) != 0:
-                                _where = _where + f"( `{col}` IN (" + ",".join(incol) + f") OR `{col}` IS NULL )"
+                                _where = _where + f"( {token} IN (" + ",".join(incol) + f") OR `{col}` IS NULL )"
                             else:
                                 _where = _where + f"`{col}` IS NULL"
                         else:
                             _where = _where + f"`{col}` IN (" + ",".join(incol) + ")"
-            if 'filter_info' in columns[col] and (columns[col]['filter_info']['type'] == 'date' or columns[col]['filter_info']['type'] == 'slider'):
+            if 'filter_info' in columns[col] and columns[col]['filter_info']['type'] == 'slider':
                 if columns[col]['filter_info']['min'] is not None \
                     and columns[col]['filter_info']['max'] is not None:
                     if len(_where) > 0:
                             _where = _where + " AND "
-                    _where = _where + f"( `{col}` BETWEEN {columns[col]['filter_info']['min']} AND {columns[col]['filter_info']['max']})"
+                    _where = _where + f"( {token} BETWEEN {columns[col]['filter_info']['min']} AND {columns[col]['filter_info']['max']})"
                 if columns[col]['filter_info']['min'] is None \
                     and columns[col]['filter_info']['max'] is not None:
                     if len(_where) > 0:
                             _where = _where + " AND "
-                    _where = _where + f"( `{col}` <= {columns[col]['filter_info']['max']})"
+                    _where = _where + f"( {token} <= {columns[col]['filter_info']['max']})"
                 if columns[col]['filter_info']['min'] is not None \
                     and columns[col]['filter_info']['max'] is None:
                     if len(_where) > 0:
                             _where = _where + " AND "
-                    _where = _where + f"( `{col}` >= {columns[col]['filter_info']['min']})"
+                    _where = _where + f"( {token} >= {columns[col]['filter_info']['min']})"
+            if 'filter_info' in columns[col] and columns[col]['filter_info']['type'] == 'date':
+                if columns[col]['filter_info']['minstring'] is not None \
+                    and columns[col]['filter_info']['maxstring'] is not None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
+                    _where = _where + f"( {token} BETWEEN '{columns[col]['filter_info']['minstring']}' AND '{columns[col]['filter_info']['maxstring']}')"
+                if columns[col]['filter_info']['minstring'] is None \
+                    and columns[col]['filter_info']['maxstring'] is not None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
+                    _where = _where + f"( {token} <= '{columns[col]['filter_info']['maxstring']}')"
+                if columns[col]['filter_info']['minstring'] is not None \
+                    and columns[col]['filter_info']['maxstring'] is None:
+                    if len(_where) > 0:
+                            _where = _where + " AND "
+                    _where = _where + f"( {token} >= '{columns[col]['filter_info']['minstring']}')"
                         
 
         if len(_where) != 0:
@@ -278,8 +364,15 @@ class sqlData():
                 (min,max) of a given column
         """
         minmax = (0,0)
+        token = f"`{column}`"
+        convertkeys = [c[0] for c in self.convert]
+        if column in convertkeys:
+            i = convertkeys.index(column)
+            otype = self.convert[i][1]
+            if otype == "date":
+                token = f"DATE(`{column}`)"
         with self.engine.connect() as conn:
-            statement = text(f"SELECT min(`{column}`) AS `min`, max(`{column}`) AS `max` FROM `{self.table}`")
+            statement = text(f"SELECT min({token}) AS `min`, max({token}) AS `max` FROM `{self.table}`")
             minmax = conn.execute(statement).fetchone()
         return minmax
     
@@ -300,8 +393,16 @@ class sqlData():
                 a list [] of sorted distinct values for the given column, null values are replaced by 'None' for a text column
         """
         values = []
+        convertkeys = [c[0] for c in self.convert]
+        token = f"`{column}`"
+        if column in convertkeys:
+            i = convertkeys.index(column)
+            otype = self.convert[i][1]
+            if otype == "date":
+                token = f"DATE(`{column}`)"
+
         with self.engine.connect() as conn:
-            statement = text(f"SELECT DISTINCT `{column}` FROM `{self.table}` {self.where(exclude=[column])} ORDER BY `{column}`")
+            statement = text(f"SELECT DISTINCT {token} AS `{column}` FROM `{self.table}` {self.where(exclude=[column])} ORDER BY `{column}`")
             result = conn.execute(statement).fetchall()
             if otype == 'text':
                 values = [str(r[0]) for r in result]

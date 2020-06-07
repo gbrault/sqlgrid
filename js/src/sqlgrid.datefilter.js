@@ -134,7 +134,9 @@ class DateFilter extends filter_base.FilterBase {
       "field": this.field,
       "type": "date",
       "min": this.filter_start_date,
-      "max": this.filter_end_date
+      "max": this.filter_end_date,
+      "minstring": this.start_date_control.val(),
+      "maxstring": this.end_date_control.val()
     };
   }
 
