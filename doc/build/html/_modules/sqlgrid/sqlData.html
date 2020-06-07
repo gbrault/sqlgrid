@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>sqlgrid.sqlData &#8212; sqlgrid 1.3.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">sqlgrid 1.3.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for sqlgrid.sqlData</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sqlalchemy</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.sql</span> <span class="kn">import</span> <span class="n">text</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<div class="viewcode-block" id="sqlData"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData">[docs]</a><span class="k">class</span> <span class="nc">sqlData</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    sqlData class is the adapter between sqlgridWidget and an SQL DataSource</span>
+<span class="sd">    New type accepted by the show_grid function which creates a Grid Widget</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        path: string</span>
+<span class="sd">            SQLAlchemy connection string to access the database</span>
+<span class="sd">        table: string</span>
+<span class="sd">            which table of the database is targeted</span>
+<span class="sd">        page: integer</span>
+<span class="sd">            should be the same value as PAGE_SIZE in grid.py</span>
+<span class="sd">        out: ipywidget.output</span>
+<span class="sd">            if one wants to output some information (it&#39;s for debug)</span>
+<span class="sd">        filter: list</span>
+<span class="sd">            list of columns to filter from the table</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">        sqlgrid.show_grid: </span>
+<span class="sd">             open an sqlgrid in jupyter Lab notebook</span>
+<span class="sd">    </span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    How to set breakpoints in this code (usable in Jupyter Notebooks)::</span>
+<span class="sd"> </span>
+<span class="sd">        import ipdb; ipdb.set_trace()</span>
+<span class="sd">        # don&#39;t always works however</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">filter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">create_engine</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+                <span class="n">statement</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT count(*) FROM `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tablesize</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">statement</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT * FROM `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">` LIMIT 1&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">columnNames</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="nb">filter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">add_to_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">item</span><span class="p">):</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="n">otype</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">remove_from_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colname</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="n">otype</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="o">==</span> <span class="n">colname</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">set_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">filter</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="o">=</span> <span class="nb">filter</span>
+
+<div class="viewcode-block" id="sqlData.getColumns"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData.getColumns">[docs]</a>    <span class="k">def</span> <span class="nf">getColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Using the self.filter list, returns an SQL compliant column list</span>
+<span class="sd">        Adds the index clolumn if existing in the database table</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            self.filter: list</span>
+<span class="sd">                The list of column to filter the database table</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            string</span>
+<span class="sd">                An SQL compliant, comma separated and backtick quoted, list of columns</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_filter</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">convertkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">_filter</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
+                <span class="k">return</span> <span class="n">_filter</span>
+            <span class="k">else</span><span class="p">:</span>                
+                <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columnNames</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">convertkeys</span><span class="p">:</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="n">convertkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                        <span class="n">otype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">token</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                        <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+                            <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DATE(`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`) AS `</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`&quot;</span>                        
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">token</span> <span class="o">=</span> <span class="n">col</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_filter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;DATE&quot;</span><span class="p">):</span>
+                                <span class="n">_filter</span> <span class="o">=</span> <span class="n">token</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">_filter</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">`&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;DATE&quot;</span><span class="p">):</span>
+                                <span class="n">_filter</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;,</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="k">else</span><span class="p">:</span>                                
+                                <span class="n">_filter</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;,`</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="k">return</span> <span class="n">_filter</span>
+
+        <span class="k">if</span> <span class="s1">&#39;index&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columnNames</span><span class="p">:</span>
+            <span class="n">_filter</span> <span class="o">=</span> <span class="s2">&quot;`index`&quot;</span>
+
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">convertkeys</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">convertkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                <span class="n">otype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DATE(`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`) AS `</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`&quot;</span>                        
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="n">col</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="o">!=</span><span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_filter</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;DATE&quot;</span><span class="p">):</span>
+                        <span class="n">_filter</span> <span class="o">=</span> <span class="n">token</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">_filter</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">token</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;DATE&quot;</span><span class="p">):</span>
+                        <span class="n">_filter</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;,</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>                                
+                        <span class="n">_filter</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;,`</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">`&quot;</span>            
+
+        <span class="k">return</span> <span class="n">_filter</span></div>
+
+<div class="viewcode-block" id="sqlData._update_df"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData._update_df">[docs]</a>    <span class="k">def</span> <span class="nf">_update_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_index_col_name</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the database table slice, as a DataFrame, according to the underlying grid state</span>
+<span class="sd">        * save the _index_column_name as an instance variable</span>
+<span class="sd">        * add a column named &#39;_index_column_name&#39; to the result DataFrame</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            _index_col_name: string</span>
+<span class="sd">               name of the column which will be added to the resulting DataFrame and needed by the grid</span>
+<span class="sd">            overlap: integer</span>
+<span class="sd">               number of overlaping rows</span>
+<span class="sd">            self.table: </span>
+<span class="sd">               the name of the table to work with</span>
+<span class="sd">            self.page: </span>
+<span class="sd">               the page size to crop when reading the database table</span>
+<span class="sd">            self.position: </span>
+<span class="sd">               where is the table cursor located</span>
+<span class="sd">            self.engine: </span>
+<span class="sd">               the database SQLAlchemy engine connection</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            DataFrame</span>
+<span class="sd">               the table slice as a pandas DataFrame</span>
+<span class="sd">        </span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">            sqlData.getColumns: to get the list of column to return</span>
+<span class="sd">            sqlData.where: to get the WHERE sub-statement to filter the resulting rows</span>
+<span class="sd">            sqlData.order_by: to get the Order By sub-statement</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_col_name</span> <span class="o">=</span> <span class="n">_index_col_name</span>
+        <span class="n">_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">getColumns</span><span class="p">()</span><span class="si">}</span><span class="s2"> FROM `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">` </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">where</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">order_by</span><span class="p">()</span><span class="si">}</span><span class="s2"> LIMIT </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="o">+</span><span class="nb">abs</span><span class="p">(</span><span class="n">overlap</span><span class="p">)</span><span class="si">}</span><span class="s2"> OFFSET </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">+</span><span class="n">overlap</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">engine</span>
+                         <span class="p">)</span>
+        <span class="c1"># convert</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span><span class="n">otype</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s1">&#39;date&#39;</span><span class="p">:</span>
+                <span class="n">_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">_df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+        <span class="c1"># insert a column which we&#39;ll use later to map edits from</span>
+        <span class="c1"># a filtered version of this df back to the unfiltered version</span>
+        <span class="n">_df</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_index_col_name</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">_df</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">_df</span></div>
+     
+<div class="viewcode-block" id="sqlData.order_by"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData.order_by">[docs]</a>    <span class="k">def</span> <span class="nf">order_by</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Using bound grid state, returns the SQL &quot;ORDER BY&quot; sub-statement</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            self._widget._sort_field: string</span>
+<span class="sd">                which column to sort with</span>
+<span class="sd">            self._widget._sort_ascending: boolean</span>
+<span class="sd">                if True, set &#39;ASC&#39; if False, set &#39;DESC&#39;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            string</span>
+<span class="sd">                the sql &quot;ORDER BY&quot; sub-statement or &quot;&quot; if no order directive set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_order_by</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_sort_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_sort_field</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">_order_by</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ORDER BY `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_sort_field</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_sort_ascending</span><span class="p">:</span>
+                    <span class="n">_order_by</span> <span class="o">=</span> <span class="n">_order_by</span> <span class="o">+</span> <span class="s2">&quot; ASC&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                     <span class="n">_order_by</span> <span class="o">=</span> <span class="n">_order_by</span> <span class="o">+</span> <span class="s2">&quot; DESC&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_order_by</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="c1">#with self.out:</span>
+                <span class="c1">#print(f&quot;order_by = {_order_by}&quot;)</span>
+
+        <span class="k">return</span> <span class="n">_order_by</span></div>
+
+<div class="viewcode-block" id="sqlData.where"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData.where">[docs]</a>    <span class="k">def</span> <span class="nf">where</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Using bound grid state, returns the SQL &quot;WHERE&quot; sub-statement or &quot;&quot; if no filtering set</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            exclude: list,(default=[])</span>
+<span class="sd">                    list of columns to exclude when calculating where</span>
+<span class="sd">            self._widget._columns: list</span>
+<span class="sd">                    list of grid&#39;s columns</span>
+<span class="sd">            self._widget_filter_tables: list</span>
+<span class="sd">                    filters set via the grid gui (can exist or not for a given column)</span>
+<span class="sd">            self._widget._columns[col][&#39;filter_info&#39;]: dict</span>
+<span class="sd">                    holds the filter type and other descriptors depending upon type</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            string</span>
+<span class="sd">                  the sql &quot;WHERE&quot; sub-statement or &quot;&quot; if no filtering conditions are set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_where</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_where</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_columns</span>
+        <span class="n">_filter_tables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span><span class="o">.</span><span class="n">_filter_tables</span>
+        <span class="n">convertkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">convertkeys</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">convertkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+                <span class="n">otype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+                    <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DATE(`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">`)&quot;</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">_filter_tables</span> <span class="ow">and</span> <span class="n">col</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exclude</span> <span class="ow">and</span> <span class="s1">&#39;filter_info&#39;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span> \
+                        <span class="ow">and</span> <span class="s1">&#39;selected&#39;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">]</span> \
+                        <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;selected&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                        <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;selected&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+                    <span class="n">incol</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">_filter_tables</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;selected&#39;</span><span class="p">]]</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incol</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">addNone</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">if</span> <span class="s2">&quot;&#39;None&#39;&quot;</span> <span class="ow">in</span> <span class="n">incol</span><span class="p">:</span>
+                            <span class="n">incol</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;&#39;None&#39;&quot;</span><span class="p">)</span>
+                            <span class="n">addNone</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                        <span class="k">if</span> <span class="n">addNone</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">incol</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> IN (&quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">incol</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;) OR `</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">` IS NULL )&quot;</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">` IS NULL&quot;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">` IN (&quot;</span> <span class="o">+</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">incol</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+            <span class="k">if</span> <span class="s1">&#39;filter_info&#39;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;slider&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> BETWEEN </span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> AND </span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> &lt;= </span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> &gt;= </span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">if</span> <span class="s1">&#39;filter_info&#39;</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;date&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;minstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;maxstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> BETWEEN &#39;</span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;minstring&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39; AND &#39;</span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;maxstring&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;minstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;maxstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> &lt;= &#39;</span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;maxstring&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+                <span class="k">if</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;minstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> \
+                    <span class="ow">and</span> <span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;maxstring&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span>
+                    <span class="n">_where</span> <span class="o">=</span> <span class="n">_where</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;( </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> &gt;= &#39;</span><span class="si">{</span><span class="n">columns</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="s1">&#39;filter_info&#39;</span><span class="p">][</span><span class="s1">&#39;minstring&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
+                        
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_where</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">_where</span> <span class="o">=</span> <span class="s2">&quot; WHERE &quot;</span> <span class="o">+</span> <span class="n">_where</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">:</span>
+                <span class="c1">#print(f&quot;where = {_where}&quot;)</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">_where</span></div>
+
+<div class="viewcode-block" id="sqlData._update_table"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData._update_table">[docs]</a>    <span class="k">def</span> <span class="nf">_update_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_viewport_range</span><span class="p">,</span> <span class="n">_df</span><span class="p">,</span> <span class="n">widget</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recalculate which database table slice should be provided as the grid&#39;s DataFrame</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            _viewport_range: tuple</span>
+<span class="sd">                * [0] index low range =&gt; if 0 user is moving backward</span>
+<span class="sd">                * [1] index high range =&gt; if &gt; self.page user is moving forward</span>
+<span class="sd">            _df: DataFrame</span>
+<span class="sd">                current value of the grid DataFrame (actually not currently used)</span>
+<span class="sd">            widget: sqlgridWidget</span>
+<span class="sd">                reference of the underlying grid</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            tuple</span>
+<span class="sd">                (True if moving forward or False if backward, the table slice as a DataFrame)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_widget</span> <span class="o">=</span> <span class="n">widget</span>
+        <span class="k">if</span> <span class="n">_viewport_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">:</span>
+            <span class="c1"># load forward</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">tablesize</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index_col_name</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=-</span><span class="mi">5</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">_viewport_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># load backward</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span>
+                <span class="n">overlap</span> <span class="o">=</span> <span class="mi">5</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">!=</span><span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index_col_name</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="n">overlap</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_df</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index_col_name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="sqlData.minmax"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData.minmax">[docs]</a>    <span class="k">def</span> <span class="nf">minmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find the minimun and the maximum of an interger or float column</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            column: string</span>
+<span class="sd">                which column to calculate (min,max)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            tuple</span>
+<span class="sd">                (min,max) of a given column</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">minmax</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="n">convertkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">convertkeys</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">convertkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+            <span class="n">otype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DATE(`</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">`)&quot;</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT min(</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">) AS `min`, max(</span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">) AS `max` FROM `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+            <span class="n">minmax</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">minmax</span></div>
+    
+<div class="viewcode-block" id="sqlData.distinctValuesOrdered"><a class="viewcode-back" href="../../index.html#sqlgrid.sqlData.sqlData.distinctValuesOrdered">[docs]</a>    <span class="k">def</span> <span class="nf">distinctValuesOrdered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">otype</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the distinct values of a given column sorted in ascending order</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            column: string</span>
+<span class="sd">                Which column to look distinct values for</span>
+<span class="sd">            otype: string</span>
+<span class="sd">                column type (&#39;text&#39;,...)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            list:</span>
+<span class="sd">                a list [] of sorted distinct values for the given column, null values are replaced by &#39;None&#39; for a text column</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">convertkeys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">]</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="k">if</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">convertkeys</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="n">convertkeys</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">column</span><span class="p">)</span>
+            <span class="n">otype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;DATE(`</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">`)&quot;</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT DISTINCT </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2"> AS `</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">` FROM `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="si">}</span><span class="s2">` </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="n">column</span><span class="p">])</span><span class="si">}</span><span class="s2"> ORDER BY `</span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">otype</span> <span class="o">==</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">values</span></div></div>
+       
+        
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">sqlgrid 1.3.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Gilbert Brault.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 3.0.4.
+    </div>
+  </body>
+</html>
