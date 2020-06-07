@@ -6,10 +6,32 @@ class sqlData():
     """
     sqlData class is the adapter between sqlgridWidget and an SQL DataSource
     New type accepted by the show_grid function which creates a Grid Widget
+
+    Parameters
+    ----------
+        path: string
+            SQLAlchemy connection string to access the database
+        table: string
+            which table of the database is targeted
+        page: integer
+            should be the same value as PAGE_SIZE in grid.py
+        out: ipywidget.output
+            if one wants to output some information (it's for debug)
+        filter: list
+            list of columns to filter from the table
+
+    See Also
+    --------
+        sqlgrid.show_grid: 
+             open an sqlgrid in jupyter Lab notebook
     
-    Note
-    ----
-    import ipdb; ipdb.set_trace() (breakpoint!)
+    Notes
+    -----
+    How to set breakpoints in this code (usable in Jupyter Notebooks)::
+ 
+        import ipdb; ipdb.set_trace()
+        # don't always works however
+
     """
     def __init__(self, path=None, table=None, page=100, out=None, filter=None):
         self.path = path
