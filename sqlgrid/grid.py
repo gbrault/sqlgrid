@@ -23,8 +23,6 @@ from itertools import chain
 from uuid import uuid4
 from six import string_types
 
-from .sqlData import sqlData
-
 # versions of pandas prior to version 0.20.0 don't support the orient='table'
 # when calling the 'to_json' function on DataFrames.  to get around this we
 # have our own copy of the panda's 0.20.0 implementation that we use for old
@@ -35,7 +33,9 @@ if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
 else:
     from . import pd_json
 
-from ipywidgets import HBox, VBox, Layout, Button, Output    
+from ipywidgets import HBox, VBox, Layout, Button, Output  
+
+from .sqlData import sqlData
 
 
 class _DefaultSettings(object):
@@ -331,18 +331,19 @@ def show_grid(data_frame,
               column_definitions=None,
               row_edit_callback=None):
     """
-    Renders a DataFrame or Series as an interactive sqlgrid, represented by
+    Renders a DataFrame, a Serie or an sqlData object as an interactive sqlgrid, represented by
     an instance of the ``sqlgridWidget`` class.  The ``sqlgridWidget`` instance
     is constructed using the options passed in to this function.  The
     ``data_frame`` argument to this function is used as the ``df`` kwarg in
     call to the sqlgridWidget constructor, and the rest of the parameters
     are passed through as is.
 
-    If the ``data_frame`` argument is a Series, it will be converted to a
-    DataFrame before being passed in to the sqlgridWidget constructor as the
-    ``df`` kwarg.
+    * If the ``data_frame`` argument is a Series, it will be converted to a
+      DataFrame before being passed in to the sqlgridWidget constructor as the
+      ``df`` kwarg.
 
-    :rtype: sqlgridWidget
+    * If the ``data_frame`` argument is an sqlData object, it will use this object
+      to provide the appropriate table slice and column definition etc. to the sqlgridwidget
 
     Parameters
     ----------
@@ -384,6 +385,10 @@ def show_grid(data_frame,
         return True if the provided row should be editable, and False
         otherwise.
 
+    Returns
+    -------
+    sqlgridWidget
+        The grid Widget corresponding to the provided parameters
 
     Notes
     -----
@@ -413,8 +418,7 @@ def show_grid(data_frame,
         }
 
     The first group of options are SlickGrid "grid options" which are
-    described in the `SlickGrid documentation
-    <https://github.com/mleibman/SlickGrid/wiki/Grid-Options>`_.
+    described in the `Slick Grid Wiki <https://github.com/6pac/SlickGrid/wiki>`_.
 
     The second group of option are options that were added specifically
     for sqlgrid and therefore are not documented in the SlickGrid documentation.
@@ -451,11 +455,10 @@ def show_grid(data_frame,
         }
 
     The first group of options are SlickGrid "column options" which are
-    described in the `SlickGrid documentation
-    <https://github.com/mleibman/SlickGrid/wiki/Column-Options>`_.
+    described in the `Slick Grid Wiki <https://github.com/6pac/SlickGrid/wiki>`_.
 
     The ``editable`` option was added specifically for sqlgrid and therefore is
-    not documented in the SlickGrid documentation.  This option specifies
+    not documented in the `Slick Grid Wiki <https://github.com/6pac/SlickGrid/wiki>`_.  This option specifies
     whether a column should be editable or not.
 
     See Also
@@ -562,6 +565,10 @@ class sqlgridWidget(widgets.DOMWidget):
     show_grid : The method that should be used to construct sqlgridWidget
                 instances, because it provides reasonable defaults for all
                 of the sqlgrid options.
+
+    gridctl : A class which associate a grid and a controller setting the 
+              grid layout, for example control the displayed columns,
+              their order and type (change from string to date...)
 
     Attributes
     ----------
@@ -1977,12 +1984,51 @@ class sqlgridWidget(widgets.DOMWidget):
 
 class gridctl():
     """
-    controller with associated grid
+    An extended grid including a controller for column setup and the resulting grid
+
+        data : DataFrame, sqlData
+            The data source: a pandas DataFrame or an SQLAlchemy connection string
+        grid_options: list
+            Set the grid behavior
+
+::
+ 
+    from sqlgrid.sqlData import sqlData
+    grid_options = {
+        # SlickGrid options
+        'fullWidthRows': False,
+        'syncColumnCellResize': True,
+        'forceFitColumns': True,
+        'defaultColumnWidth': 150,
+        'rowHeight': 28,
+        'enableColumnReorder': True,
+        'enableTextSelectionOnCells': True,
+        'editable': True,
+        'autoEdit': False,
+        'explicitInitialization': True,
+        'enableCellNavigation': True,
+
+        # Qgrid options
+        'maxVisibleRows': 10,
+        'minVisibleRows': 8,
+        'sortable': True,
+        'filterable': True,
+        'highlightSelectedCell': True,
+        'highlightSelectedRow': True
+    }
+    file = f"<path of the SQLITE database>"
+    databaselite = f"sqlite:///{file}"
+    table = f"<table name in the database>"
+    # if you want to have output from the sqlData instance (mostly debug)
+    out = widgets.Output(layout=Layout(border='1px solid black'))
+    sql = sqlData(path=databaselite, table=table, out=out)
+    grid = sqlgrid.gridctl(sql, grid_options=grid_options)
+    # show the grid
+    grid._gridctl
+
     """
 
     def __init__(self, data, grid_options=None):
-        """
-        """
         self.data = data
         self.grid_options = grid_options
         self.menu = Button(icon='bars',
@@ -2025,12 +2071,32 @@ class gridctl():
             display(HBox([self._grid],layout=Layout(width="200vw")))
     
     def menu_click(self,b):
+        """
+        Show/Hide the column setup grid, bound to self.menu button
+
+        Parameters
+        ----------
+            b:  ipywidgets.Button
+                the triggering button
+
+        """
         if self._columns.layout.display is None:
             self._columns.layout.display = 'none'
         else:
             self._columns.layout.display = None
 
     def columnSetup(self, event, grid):
+        """
+        Show/Hide columns, bound to the self._columns grid, used to setup the main grid behavior
+
+        Parameters
+        ----------
+            event:  list
+                    the grid change event (see: cell_edited)
+            grid:   sqlgrid.sqlgridWidget
+                    the grid object which changed
+
+        """
         df = self._columns._df
         columns = []
         for index, rows in df.iterrows():

@@ -34,4 +34,5 @@ __all__ = [
     "show_grid",
     "sqlgridWidget",
     "gridctl",
+    "sqlData"
 ]
