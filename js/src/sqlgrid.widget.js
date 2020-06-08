@@ -503,6 +503,25 @@ class sqlgridView extends widgets.DOMWidgetView {
       this.grid_header.click(handle_header_click)
     }
 
+    this.slick_grid.onColumnsReordered.subscribe( (e, args) => {
+      if (this.columnsReordered){
+        clearTimeout(this.columnsReordered);
+      }
+      this.columnsReordered = setTimeout((gridView, e, args) => {
+        var content = [];
+        var columns = args.grid.getColumns();
+        var i;
+        for (i=0; i< columns.length; i++){
+            content.push(columns[i].name)
+        }
+        var msg = {
+          'type': 'change_column_order',
+          'content': content
+        }
+        gridView.send(msg)
+      }, 100, this, e, args);
+    });
+
     this.slick_grid.onViewportChanged.subscribe((e) => {
       if (this.viewport_timeout){
         clearTimeout(this.viewport_timeout);

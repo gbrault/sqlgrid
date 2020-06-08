@@ -2052,27 +2052,49 @@ class gridctl():
                       tooltip="Show/Hide Column Setup",
                       layout=Layout(width="5%"))
         self.menu.on_click(self.menu_click)
+        
+        if isinstance(data, sqlData):
+            # just display the first 20 columns if the table has more than 20 columns
+            # set filter if so
+            if len(data.columnNames) > 20:
+                filter = data.columnNames[:20]
+                data.set_filter(filter)
+        
+        visible = []
+        name = []
+        otype = []
+        origin = []
+        exclude = ['index',sqlgridWidget._index_col_name.default_value]
+        for i in range(len(data.columnNames)):
+            col = data.columnNames[i]
+            if col not in exclude:
+                name.append(col)
+                otype.append(data.columnTypes[i])
+                origin.append(i)
+                if i < 20:
+                    visible.append(True)
+                else:
+                    visible.append(False)
+        columndata = {"name": name,
+                "type": otype,
+                "origin": origin,
+                "position": origin,
+                "visible": visible
+               }
+
         if grid_options is None:
             self._grid = show_grid(self.data)
         else:
             self._grid = show_grid(self.data, grid_options=grid_options)
 
-        exclude = ['index',sqlgridWidget._index_col_name.default_value]
-        columndata = {"name": [self._grid._columns[col]['name'] for col in self._grid._columns if col not in exclude],
-                "type": [self._grid._columns[col]['type'] for col in self._grid._columns if col not in exclude],
-                "origin": [self._grid._columns[col]['position'] for col in self._grid._columns if col not in exclude],
-                "astype": [self._grid._columns[col]['type'] for col in self._grid._columns if col not in exclude],
-                "position": [self._grid._columns[col]['position'] for col in self._grid._columns if col not in exclude],
-                "visible": [True for col in self._grid._columns  if col not in exclude]
-               }
         col_defs = {
             'name':{'editable':False},
             'type':{'editable':False},
             'origin':{'editable':False},
-            'astype':{'editable':True},
             'position':{'editable':True},
             'visible':{'editable':True},
         }
+        
         self._columns = show_grid(pd.DataFrame(data=columndata),column_definitions=col_defs)
 
         self._columns.on('cell_edited',self.columnSetup)

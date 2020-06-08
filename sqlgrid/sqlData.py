@@ -44,8 +44,10 @@ class sqlData():
             with self.engine.connect() as conn:
                 statement = text(f"SELECT count(*) FROM `{self.table}`")
                 self.tablesize = conn.execute(statement).fetchone()[0]
-                statement = text(f"SELECT * FROM `{self.table}` LIMIT 1")
-                self.columnNames = conn.execute(statement).fetchone().keys()
+            _df = pd.read_sql(f"SELECT * FROM `{self.table}`LIMIT 1", self.engine )
+            self.columnNames = _df.columns
+            self.columnTypes = _df.dtypes
+
         self._widget = None
         self.out = out
         self.filter = filter
