@@ -1,9 +1,10 @@
 # Python
 *.pyc
+__pycache__
 # IntelliJ IDEA (IDE-related files)
 *.iml
 .idea/*
-.ipynb_checkpoints/*
+.ipynb_checkpoints/
 
 # Setuptools.
 dist
@@ -19,7 +20,8 @@ jupyterhub_cookie_secret
 index.ipynb
 
 
-sqlgrid/build/
+/build/
+/build/lib/
 *.py[cod]
 node_modules/
 package-lock.json
@@ -38,5 +40,5 @@ sqlgrid/static/
 # data
 data/
 
-# Allow
-!sqlgrid/doc/build/html/
+# DOC allow doc distribution for python
+!doc/build/html/
