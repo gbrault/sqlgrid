@@ -80,6 +80,6 @@ output files are located in the js/out directory
 
 What's New
 ----------
-01/06/2020 Refactoring
-07/06/2020 SQL implementation released
-08/06/2020 Documentation (python + javascript)
+* 01/06/2020 Refactoring
+* 07/06/2020 SQL implementation released
+* 08/06/2020 Documentation (python + javascript)
