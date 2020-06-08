@@ -40,7 +40,9 @@ API documentation is hosted on `readthedocs <http://sqlgrid.readthedocs.io/en/la
 Installation
 ------------
 
-Installing
+Currently only source installation is possible
+
+Requires Yarn installed
 
 From a shell in a directory and an environment where Jupyter Lab is installed
 
@@ -55,6 +57,29 @@ From a shell in a directory and an environment where Jupyter Lab is installed
 At this point if you run jupyter lab normally with the 'jupyter lab' command, you should be
 able to use sqlgrid in notebooks as you normally would.
 
+Documentation
+-------------
+
+* Python use Sphinx (install it as a prerequisite)
+* Javascript use JSDOC (install it as a prerequisite)
+
+For Python
+
+* Go in the doc directory in a shell
+* ./make html
+
+output files are located in the ./doc/build/html directory
+
+For Javascript
+
+* Go in the js directory
+* jsdoc -c conf.json
+
+output files are located in the js/out directory
+
+
 What's New
 ----------
-01/06/2020 Refactoring 
+01/06/2020 Refactoring
+07/06/2020 SQL implementation released
+08/06/2020 Documentation (python + javascript)

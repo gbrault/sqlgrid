@@ -1,4 +1,32 @@
-var $ = require('jquery');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: sqlgrid.textfilter.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: sqlgrid.textfilter.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>var $ = require('jquery');
 var _ = require('underscore');
 var filter_base = require('./sqlgrid.filterbase.js');
 
@@ -7,23 +35,23 @@ class TextFilter extends filter_base.FilterBase {
 
   get_filter_html() {
     return `
-      <div class='text-filter grid-filter sqlgrid-dropdown-menu'>
-        <h3 class='sqlgrid-popover-title'>
-          <div class='dropdown-title'>Filter by ${this.field}</div>
-        </h3>
-        <div class='dropdown-body'>
-          <div class='input-area'>
-            <input class='search-input' type='text'/>
-          </div>
-          <div class='text-filter-grid'/>
-          <div class='no-results hidden'>No results found.</div>
-        </div>
-        <div class='dropdown-footer'>
-          <a class='select-all-link' href='#'>Select All</a>
-          <a class='date-link' href='#'>|Date</a>
-          <a class='reset-link' href='#'>Reset</a>
-        </div>
-      </div>
+      &lt;div class='text-filter grid-filter sqlgrid-dropdown-menu'>
+        &lt;h3 class='sqlgrid-popover-title'>
+          &lt;div class='dropdown-title'>Filter by ${this.field}&lt;/div>
+        &lt;/h3>
+        &lt;div class='dropdown-body'>
+          &lt;div class='input-area'>
+            &lt;input class='search-input' type='text'/>
+          &lt;/div>
+          &lt;div class='text-filter-grid'/>
+          &lt;div class='no-results hidden'>No results found.&lt;/div>
+        &lt;/div>
+        &lt;div class='dropdown-footer'>
+          &lt;a class='select-all-link' href='#'>Select All&lt;/a>
+          &lt;a class='date-link' href='#'>|Date&lt;/a>
+          &lt;a class='reset-link' href='#'>Reset&lt;/a>
+        &lt;/div>
+      &lt;/div>
     `;
   }
 
@@ -40,7 +68,7 @@ class TextFilter extends filter_base.FilterBase {
     this.length = col_info.length;
     this.value_range = col_info.value_range;
     this.selected_rows = [];
-    for (var i = 0; i < col_info.selected_length; i++) {
+    for (var i = 0; i &lt; col_info.selected_length; i++) {
       this.selected_rows.push(i);
     }
     this.ignore_selection_changed = true;
@@ -70,7 +98,7 @@ class TextFilter extends filter_base.FilterBase {
       this.update_slick_grid_data();
       this.filter_grid.setData(this.data_view);
       this.selected_rows = [];
-      for (var i = 0; i < col_info.selected_length; i++) {
+      for (var i = 0; i &lt; col_info.selected_length; i++) {
         this.selected_rows.push(i);
         this.row_selection_model.setSelectedRows(this.selected_rows);
       }
@@ -96,7 +124,7 @@ class TextFilter extends filter_base.FilterBase {
           id: 'row' + i,
           value: ''
         };
-        if (i >= this.value_range[0] && i < this.value_range[1]) {
+        if (i >= this.value_range[0] &amp;&amp; i &lt; this.value_range[1]) {
           return this.grid_items[i - this.value_range[0]] || default_row;
         } else {
           return default_row;
@@ -134,7 +162,7 @@ class TextFilter extends filter_base.FilterBase {
     };
 
     var row_formatter = function (row, cell, value, columnDef, dataContext) {
-      return "<span class='text-filter-value'>" + dataContext.value + "</span>";
+      return "&lt;span class='text-filter-value'>" + dataContext.value + "&lt;/span>";
     };
 
     var checkboxSelector = new Slick.CheckboxSelectColumn({
@@ -165,7 +193,7 @@ class TextFilter extends filter_base.FilterBase {
     // of the filter control.  This value can't be calculated dynamically because the filter control
     // hasn't been shown yet.
     var sqlgrid_viewport_height = this.column_header_elem.closest('.slick-header').siblings('.slick-viewport').height() - 115;
-    if (sqlgrid_viewport_height < max_height) {
+    if (sqlgrid_viewport_height &lt; max_height) {
       max_height = sqlgrid_viewport_height;
     }
 
@@ -173,7 +201,7 @@ class TextFilter extends filter_base.FilterBase {
     // totalRowHeight is how tall the grid would have to be to fit all of the rows in the dataframe.
     var total_row_height = (this.grid_items.length) * options.rowHeight;
 
-    if (total_row_height <= max_height) {
+    if (total_row_height &lt;= max_height) {
       grid_height = total_row_height;
       this.filter_grid_elem.addClass('hide-scrollbar');
     }
@@ -239,7 +267,7 @@ class TextFilter extends filter_base.FilterBase {
       this.reset_filter();
       this.filter_list = "all";
       var all_row_indices = [];
-      for (var i = 0; i < this.length; i++) {
+      for (var i = 0; i &lt; this.length; i++) {
         all_row_indices.push(i);
       }
       this.row_selection_model.setSelectedRows(all_row_indices);
@@ -284,13 +312,13 @@ class TextFilter extends filter_base.FilterBase {
       }
 
       // focus on the search box for any key other than the up/down arrows
-      if (e.keyCode != 40 && e.keyCode != 38) {
+      if (e.keyCode != 40 &amp;&amp; e.keyCode != 38) {
         this.focus_on_search_box();
         return;
       }
 
       // also focus on the search box if we're at the top of the grid and this is the up arrow
-      else if (active_cell.row == 0 && e.keyCode == 38) {
+      else if (active_cell.row == 0 &amp;&amp; e.keyCode == 38) {
         this.focus_on_search_box();
         e.preventDefault();
         return;
@@ -344,7 +372,7 @@ class TextFilter extends filter_base.FilterBase {
     this.excluded_rows = [];
     if (this.filter_list == 'all') {
       var j = 0;
-      for (var i = 0; i < this.data_view.getLength(); i++) {
+      for (var i = 0; i &lt; this.data_view.getLength(); i++) {
         if (rows[j] == i) {
           j += 1;
           continue;
@@ -391,3 +419,26 @@ class TextFilter extends filter_base.FilterBase {
 }
 
 module.exports = {'TextFilter': TextFilter};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="DateFilter.html">DateFilter</a></li><li><a href="FilterBase.html">FilterBase</a></li><li><a href="SliderFilter.html">SliderFilter</a></li><li><a href="sqlgridModel.html">sqlgridModel</a></li><li><a href="sqlgridView.html">sqlgridView</a></li><li><a href="TextFilter.html">TextFilter</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$">$</a></li><li><a href="global.html#validateNumber">validateNumber</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Mon Jun 08 2020 10:46:53 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
