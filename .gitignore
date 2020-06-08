@@ -18,9 +18,8 @@ jupyterhub.sqlite
 jupyterhub_cookie_secret
 index.ipynb
 
-docs/_build/*
 
-build/
+sqlgrid/build/
 *.py[cod]
 node_modules/
 package-lock.json
@@ -38,3 +37,6 @@ sqlgrid/static/
 
 # data
 data/
+
+# Allow
+!sqlgrid/doc/build/html/
