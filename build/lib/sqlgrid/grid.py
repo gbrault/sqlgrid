@@ -2072,7 +2072,11 @@ class gridctl():
         self.menu = Button(icon='bars',
                       tooltip="Show/Hide Column Setup",
                       layout=Layout(width="5%"))
+        self.refresh = Button(icon='refresh',
+                      tooltip="Refresh Grid Layout",
+                      layout=Layout(width="5%"))
         self.menu.on_click(self.menu_click)
+        self.refresh.on_click(self.refresh_click)
         
         if isinstance(data, sqlData):
             # just display the first 20 columns if the table has more than 20 columns
@@ -2103,10 +2107,7 @@ class gridctl():
                 "visible": visible
                }
 
-        if grid_options is None:
-            self._grid = show_grid(self.data)
-        else:
-            self._grid = show_grid(self.data, grid_options=grid_options)
+        self._grid = show_grid(self.data, grid_options=grid_options)
 
         col_defs = {
             'name':{'editable':False},
@@ -2115,14 +2116,14 @@ class gridctl():
             'position':{'editable':True},
             'visible':{'editable':True},
         }
-        
-        self._columns = show_grid(pd.DataFrame(data=columndata),column_definitions=col_defs)
+        self.columns_df = pd.DataFrame(data=columndata)
+        self._columns = show_grid(self.columns_df,column_definitions=col_defs)
 
         self._columns.on('cell_edited',self.columnSetup)
 
         self.output = Output()
 
-        self._gridctl = VBox([VBox([self.menu,self._columns]),
+        self._gridctl = VBox([VBox([HBox([self.menu,self.refresh]),self._columns]),
                               self.output
                             ])
         self._columns.layout.display = 'none'
@@ -2144,13 +2145,13 @@ class gridctl():
                 the grid which triggered the event
         """
         j = 0
-        self._columns.log.info(event['filter'])
+        print(event['filter'])
         for col in event['filter']:
-            s =  self._columns.df['name']
+            s =  self.columns_df['name']
             position = []
             if len(s[s == col]) > 0:
                 i = s[s == col].index[0]
-                self._columns.df.at[i,'position'] = j + 1
+                self.columns_df.at[i,'position'] = j + 1
             j += 1
         self._columns._update_df(fire_data_change_event=True)
     
@@ -2169,6 +2170,18 @@ class gridctl():
         else:
             self._columns.layout.display = None
 
+    def refresh_click(self,b):
+        """
+        Refresh grid layout
+        """
+        if isinstance(self.data, sqlData):
+            self.data.position = 0
+        self._grid = show_grid(self.data, grid_options=self.grid_options)
+        self._grid.on("change_column_order", self.handle_change_column_order)
+        with self.output:
+            self.output.clear_output()
+            display(HBox([self._grid],layout=Layout(width="200vw")))        
+
     def columnSetup(self, event, grid):
         """
         Show/Hide columns, bound to the self._columns grid, used to setup the main grid behavior
@@ -2182,14 +2195,20 @@ class gridctl():
 
         """
         df = self._columns._df
+        columns_dic = {}
+        for index, row in df.iterrows():
+            if row['visible']:
+                 columns_dic[row['position']]=row['name']
+        
         columns = []
-        for index, rows in df.iterrows():
-            if rows['visible']:
-                 columns.append(rows['name'])
+        keys = sorted(columns_dic)
+        for key in keys:
+              columns.append(columns_dic[key])
 
         if isinstance(self.data, sqlData):
             self.data.set_filter(columns)
             self._grid = show_grid(self.data, grid_options=self.grid_options)
+            self._grid.on("change_column_order", self.handle_change_column_order)
             with self.output:
                 self.output.clear_output()
                 display(HBox([self._grid],layout=Layout(width="200vw")))
