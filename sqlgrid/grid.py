@@ -1669,6 +1669,13 @@ class sqlgridWidget(widgets.DOMWidget):
             self._rebuild_widget(fire_data_change_event=True)
         return True
 
+    def handle_change_column_order(self, content):
+        if not self._initialized:
+            return
+        if self.gtype == "sql":
+            self.sql.filter = content['content']
+        return True       
+
     def _handle_sqlgrid_msg(self, widget, content, buffers=None):
         try:
             self._handle_handle_sqlgrid_msg(content)
@@ -1708,6 +1715,9 @@ class sqlgridWidget(widgets.DOMWidget):
                 return
         elif content['type'] == 'change_filter_to_date':
             if not self._handle_change_filter_to_date(content):
+                return
+        elif content['type'] == 'change_column_order':
+            if not self._handle_change_column_order(content):
                 return
         else:
             self.log.error(f"Client message {content['type']} ?")
