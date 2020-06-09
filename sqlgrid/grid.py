@@ -705,7 +705,8 @@ class sqlgridWidget(widgets.DOMWidget):
                 'filter_changed',
                 'sort_changed',
                 'text_filter_viewport_changed',
-                'json_updated'
+                'json_updated',
+                'change_column_order'
             ]
 
         The following bullet points describe the events listed above in more
@@ -798,6 +799,11 @@ class sqlgridWidget(widgets.DOMWidget):
             * **old** A tuple specifying the previous range of visible rows.
             * **new** A tuple specifying the range of rows that are now
               visible.
+
+        * **change_column_order** Rhe user drag and drop a column header to
+          change the column order layout
+
+            * **filter** Is the list of new columns layout ordering
 
         The ``event`` dictionary for every type of event will contain a
         ``name`` key specifying the name of the event that occurred.  That
@@ -1669,11 +1675,16 @@ class sqlgridWidget(widgets.DOMWidget):
             self._rebuild_widget(fire_data_change_event=True)
         return True
 
-    def handle_change_column_order(self, content):
+    def _handle_change_column_order(self, content):
         if not self._initialized:
             return
+        filter = [col for col in content['content'] if len(col) > 0]
         if self.gtype == "sql":
-            self.sql.filter = content['content']
+            self.sql.filter = filter
+        self._notify_listeners({
+            'name': 'change_column_order',
+            'filter': filter
+        })        
         return True       
 
     def _handle_sqlgrid_msg(self, widget, content, buffers=None):
@@ -2118,6 +2129,30 @@ class gridctl():
         
         with self.output:
             display(HBox([self._grid],layout=Layout(width="200vw")))
+
+        self._grid.on("change_column_order", self.handle_change_column_order)
+
+    def handle_change_column_order(self, event, sqlgrid_widget):
+        """
+        Handle column reordering event
+
+        Parameters
+        ----------
+            event: list
+                the data associated to the event {"name":"change_column_order","filter":[col1,col2,col3,...]}
+            sqlgrid_widget: sqlgridWidget
+                the grid which triggered the event
+        """
+        j = 0
+        self._columns.log.info(event['filter'])
+        for col in event['filter']:
+            s =  self._columns.df['name']
+            position = []
+            if len(s[s == col]) > 0:
+                i = s[s == col].index[0]
+                self._columns.df.at[i,'position'] = j + 1
+            j += 1
+        self._columns._update_df(fire_data_change_event=True)
     
     def menu_click(self,b):
         """
