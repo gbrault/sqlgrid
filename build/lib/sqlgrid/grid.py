@@ -33,7 +33,7 @@ if LooseVersion(pd.__version__) > LooseVersion('0.20.0'):
 else:
     from . import pd_json
 
-from ipywidgets import HBox, VBox, Layout, Button, Output  
+from ipywidgets import HBox, VBox, Layout, Button, Select, Dropdown, Output 
 
 from .sqlData import sqlData
 
@@ -2027,7 +2027,10 @@ class gridctl():
         data : DataFrame, sqlData
             The data source: a pandas DataFrame or an SQLAlchemy connection string
         grid_options: list
-            Set the grid behavior
+            Key argument, Set the grid behavior
+        tableScan: Boolean
+            Key argument, if true the UI has one more dropdown, showing the list of the SQL database tables.
+            This dropdown allows browsing the selected table.
 
 ::
  
@@ -2066,7 +2069,9 @@ class gridctl():
 
     """
 
-    def __init__(self, data, grid_options=None):
+    def __init__(self, data, grid_options=None, tableScan=False):
+        if not isinstance(data, sqlData):
+            return
         self.data = data
         self.grid_options = grid_options
         self.menu = Button(icon='bars',
@@ -2077,24 +2082,54 @@ class gridctl():
                       layout=Layout(width="5%"))
         self.menu.on_click(self.menu_click)
         self.refresh.on_click(self.refresh_click)
+        self.tableScan = tableScan
+        self.output = Output()
+        self.output_columns = Output()
+        self.grid_width = '100'
+        self.grid_width_values = ['50','100','150','200','250','300','400','600']
+        self.sel_width = Dropdown(
+            options= self.grid_width_values,
+            value=self.grid_width,
+            layout=Layout(width="10%")
+        )
         
-        if isinstance(data, sqlData):
-            # just display the first 20 columns if the table has more than 20 columns
-            # set filter if so
-            if len(data.columnNames) > 20:
-                filter = data.columnNames[:20]
-                data.set_filter(filter)
         
+        if not self.tableScan:
+            self._gridctl = VBox([VBox([HBox([self.menu, self.refresh, self.sel_width]), self.output_columns]),
+                                self.output
+                                ])
+            (columndata,col_defs) = self.def_columns()
+            self.create_n_display_all(columndata,col_defs)
+        else:
+            self.tables = data.getTables()
+            self.data.table = self.tables[0]
+            self.tableDropDown = Dropdown(
+                options=self.tables
+            )
+            self.tableDropDown.observe(self.table_value_change, names='value')
+            self._gridctl = VBox([VBox([HBox([self.menu, self.refresh, self.sel_width, self.tableDropDown]),self.output_columns]),
+                                self.output
+                                ])
+        self.sel_width.observe(self.width_change, names='value')
+
+    def width_change(self,change):
+        self.grid_width = change['new']
+        print(self.grid_width)
+        if hasattr(self,'_grid'):
+            self._grid.off("change_column_order", self.handle_change_column_order)
+        self.create_n_display_all()
+
+    def def_columns(self):
         visible = []
         name = []
         otype = []
         origin = []
         exclude = ['index',sqlgridWidget._index_col_name.default_value]
-        for i in range(len(data.columnNames)):
-            col = data.columnNames[i]
+        for i in range(len(self.data.columnNames)):
+            col = self.data.columnNames[i]
             if col not in exclude:
                 name.append(col)
-                otype.append(data.columnTypes[i])
+                otype.append(self.data.columnTypes[i])
                 origin.append(i)
                 if i < 20:
                     visible.append(True)
@@ -2106,9 +2141,6 @@ class gridctl():
                 "position": origin,
                 "visible": visible
                }
-
-        self._grid = show_grid(self.data, grid_options=grid_options)
-
         col_defs = {
             'name':{'editable':False},
             'type':{'editable':False},
@@ -2116,22 +2148,38 @@ class gridctl():
             'position':{'editable':True},
             'visible':{'editable':True},
         }
-        self.columns_df = pd.DataFrame(data=columndata)
-        self._columns = show_grid(self.columns_df,column_definitions=col_defs)
+        return (columndata,col_defs)
 
-        self._columns.on('cell_edited',self.columnSetup)
-
-        self.output = Output()
-
-        self._gridctl = VBox([VBox([HBox([self.menu,self.refresh]),self._columns]),
-                              self.output
-                            ])
-        self._columns.layout.display = 'none'
-        
+    def create_n_display_all(self,columndata=None,col_defs=None):
+        # just display the first 20 columns if the table has more than 20 columns
+        # set filter if so
+        if len(self.data.columnNames) > 20:
+            filter = self.data.columnNames[:20]
+            self.data.set_filter(filter)
+        self._grid = show_grid(self.data, grid_options=self.grid_options)
+        if columndata is not None and col_defs is not None:
+            self.columns_df = pd.DataFrame(data=columndata)
+            self._columns = show_grid(self.columns_df,column_definitions=col_defs)
+            with self.output_columns:
+                self.output_columns.clear_output()
+                display(self._columns)
         with self.output:
-            display(HBox([self._grid],layout=Layout(width="200vw")))
+            self.output.clear_output()
+            width = f"{self.grid_width}vw"
+            display(HBox([self._grid],layout=Layout(width=width)))
+
 
         self._grid.on("change_column_order", self.handle_change_column_order)
+        self._columns.on('cell_edited',self.columnSetup)
+            
+    def table_value_change(self, change):
+        if hasattr(self,'_grid'):
+            self._grid.off("change_column_order", self.handle_change_column_order)
+        if hasattr(self,'_columns'):
+            self._columns.off('cell_edited',self.columnSetup)
+        self.data.table = change['new']
+        (columndata,col_defs) = self.def_columns()
+        self.create_n_display_all(columndata=columndata,col_defs=col_defs)
 
     def handle_change_column_order(self, event, sqlgrid_widget):
         """
@@ -2140,12 +2188,12 @@ class gridctl():
         Parameters
         ----------
             event: list
-                the data associated to the event {"name":"change_column_order","filter":[col1,col2,col3,...]}
+                the data associated with the event {"name":"change_column_order","filter":[col1,col2,col3,...]}
             sqlgrid_widget: sqlgridWidget
                 the grid which triggered the event
         """
         j = 0
-        print(event['filter'])
+        #print(event['filter'])
         for col in event['filter']:
             s =  self.columns_df['name']
             position = []
@@ -2173,14 +2221,19 @@ class gridctl():
     def refresh_click(self,b):
         """
         Refresh grid layout
+            b: ipywidgets.Button
+               the triggering button
         """
+        if hasattr(self,'_grid'):
+            self._grid.off("change_column_order", self.handle_change_column_order)
+        if hasattr(self,'_columns'):
+            self._columns.off('cell_edited',self.columnSetup)
         if isinstance(self.data, sqlData):
-            self.data.position = 0
-        self._grid = show_grid(self.data, grid_options=self.grid_options)
-        self._grid.on("change_column_order", self.handle_change_column_order)
-        with self.output:
-            self.output.clear_output()
-            display(HBox([self._grid],layout=Layout(width="200vw")))        
+            # reset 
+            if self.tableScan:
+                self.data.table =  self.tables[0]
+        (columndata,col_defs) = self.def_columns()
+        self.create_n_display_all(columndata=columndata,col_defs=col_defs) 
 
     def columnSetup(self, event, grid):
         """
@@ -2212,6 +2265,3 @@ class gridctl():
             with self.output:
                 self.output.clear_output()
                 display(HBox([self._grid],layout=Layout(width="200vw")))
-
-
-

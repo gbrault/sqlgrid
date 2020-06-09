@@ -39,19 +39,31 @@ class sqlData():
         self.engine = None
         self.position = 0
         self.table = table
-        if path is not None:
-            self.engine = sqlalchemy.create_engine(path)
-            with self.engine.connect() as conn:
-                statement = text(f"SELECT count(*) FROM `{self.table}`")
-                self.tablesize = conn.execute(statement).fetchone()[0]
-            _df = pd.read_sql(f"SELECT * FROM `{self.table}`LIMIT 1", self.engine )
-            self.columnNames = _df.columns
-            self.columnTypes = _df.dtypes
-
         self._widget = None
         self.out = out
         self.filter = filter
         self.convert = []
+
+    @property
+    def table(self):
+        return self._table
+    
+    @table.setter
+    def table(self, value):
+        self._table = value
+        self._widget = None
+        self.position = 0
+        self.filter = None
+        self.convert = []
+        if value is not None and self.path is not None:
+            if self.engine is None:
+                self.engine = sqlalchemy.create_engine(self.path)
+            with self.engine.connect() as conn:
+                statement = text(f"SELECT count(*) FROM `{self._table}`")
+                self.tablesize = conn.execute(statement).fetchone()[0]
+            _df = pd.read_sql(f"SELECT * FROM `{self._table}`LIMIT 1", self.engine )
+            self.columnNames = _df.columns
+            self.columnTypes = _df.dtypes
 
     def add_to_convert(self,item):
         found = False
@@ -409,6 +421,18 @@ class sqlData():
             if otype == 'text':
                 values = [str(r[0]) for r in result]
         return values
+
+    def getTables(self):
+        if self.engine is None:
+            self.engine = sqlalchemy.create_engine(self.path)
+        '''tables = List of database's Tables'''
+        if 'sqlite' in self.engine.name:
+            statement = text("SELECT name FROM sqlite_master WHERE type = 'table' OR type = 'view'")
+        elif 'mysql' in self.engine.name:
+            statement = f"select table_name AS name from information_schema.tables where TABLE_SCHEMA='{self.engine.url.database}'"
+        with self.engine.connect() as conn:
+            result = conn.execute(statement).fetchall()
+            return sorted([row['name'] for row in result])
        
         
 
