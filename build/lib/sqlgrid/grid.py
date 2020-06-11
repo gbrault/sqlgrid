@@ -1254,8 +1254,8 @@ class sqlgridWidget(widgets.DOMWidget):
                      col_info['filter_info']['max'] is None):
                 if self.gtype == "sql":
                     minmax = self.sql.minmax(col_name)
-                    col_info['filter_max'] = minmax[1]
-                    col_info['filter_min'] = minmax[0]
+                    col_info['filter_max'] = str(minmax[1])
+                    col_info['filter_min'] = str(minmax[0])
                 else:
                     col_info['filter_max'] = max(col_series)
                     col_info['filter_min'] = min(col_series)
