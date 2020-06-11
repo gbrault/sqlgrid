@@ -51,6 +51,7 @@ module.exports = [
      // custom widget.
      // It must be an amd module
      //
+     // , 'base/js/dialog' withdrawn from the externals as this module seems away... GB 10/6/2020
         entry: './src/index.js',
         output: {
             filename: 'index.js',
@@ -61,7 +62,7 @@ module.exports = [
         module: {
             rules: rules
         },
-        externals: ['@jupyter-widgets/base', '@jupyter-widgets/controls', 'base/js/dialog'],
+        externals: ['@jupyter-widgets/base', '@jupyter-widgets/controls'],
         plugins: plugins,
         mode: 'production'
     },
@@ -78,13 +79,16 @@ module.exports = [
      //
      // The target bundle is always `dist/index.js`, which is the path required
      // by the custom widget embedder.
+     //       
+     //        GB 10/6/2020
+     // path: path.resolve(__dirname, './dist/'),
+     // publicPath: 'https://unpkg.com/sqlgrid2@' + version + '/dist/',
      //
         entry: './src/embed.js',
         output: {
-            filename: 'index.js',
-            path: path.resolve(__dirname, './dist/'),
-            libraryTarget: 'amd',
-            publicPath: 'https://unpkg.com/sqlgrid@' + version + '/dist/'
+            filename: 'embed.js',
+            path: path.resolve(__dirname, '..', 'sqlgrid', 'static'),
+            libraryTarget: 'amd'
         },
         devtool: 'source-map',
         module: {

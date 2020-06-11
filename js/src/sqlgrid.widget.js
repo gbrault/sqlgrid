@@ -8,12 +8,14 @@ var text_filter = require('./sqlgrid.textfilter.js');
 var boolean_filter = require('./sqlgrid.booleanfilter.js');
 var editors = require('./sqlgrid.editors.js');
 var dialog = null;
+/*
 try {
   dialog = require('base/js/dialog');
 } catch (e) {
   console.warn("sqlgrid was unable to load base/js/dialog. " +
                "Full screen button won't be available");
 }
+*/
 var jquery_ui = require('jquery-ui-dist/jquery-ui.js');
 
 require('slickgrid-qgrid/slick.core.js');
