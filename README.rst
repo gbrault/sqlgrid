@@ -83,4 +83,4 @@ What's New
 * 01/06/2020 Refactoring
 * 07/06/2020 SQL implementation released
 * 08/06/2020 Documentation (python + javascript)
-* 11/06/2020 Added chinook Database + voila capability
+* 11/06/2020 Added chinook Database (https://www.sqlitetutorial.net/sqlite-sample-database/) + voila capability
