@@ -37,8 +37,6 @@ sqlgrid/static/
 # VISUAL STUDIO CODE (IDE-related files)
 .vscode
 
-# data
-data/
 
 # DOC allow doc distribution for python
 !doc/build/html/
