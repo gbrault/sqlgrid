@@ -20,7 +20,7 @@ class TextFilter extends filter_base.FilterBase {
         </div>
         <div class='dropdown-footer'>
           <a class='select-all-link' href='#'>Select All</a>
-          <a class='date-link' href='#'>|Date</a>
+          <a class='date-link' href='#'>|Date|</a>
           <a class='reset-link' href='#'>Reset</a>
         </div>
       </div>

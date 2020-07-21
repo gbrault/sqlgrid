@@ -18,7 +18,7 @@ class SliderFilter extends filter_base.FilterBase {
           </span>
         </div>
         <div class='dropdown-footer'>
-        <a class='text-link' href='#'>|String</a>
+        <a class='text-link' href='#'>String|</a>
         <a class='reset-link' href='#'>Reset</a>
         </div>
       </div>

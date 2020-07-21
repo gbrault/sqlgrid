@@ -497,18 +497,17 @@
   height: 19px;
 }
 
-.q-grid-container .grid-filter .dropdown-footer a.reset-link {
+.q-grid-container .grid-filter .dropdown-footer {
   padding: 0px;
   float: right;
 }
 
-.q-grid-container .grid-filter .dropdown-footer a.date-link a.text-link {
+a.select-all-link a.reset-link a.date-link a.text-link {
   padding: 0px;
-  float: right;
 }
 
-.q-grid-container .grid-filter .dropdown-footer a.select-all-link {
-  padding: 0px;
+a.reset-link a.date-link a.text-link {
+  float: right;
 }
 
 .q-grid-container .date-range-filter .dropdown-body {
