@@ -1675,6 +1675,19 @@ class sqlgridWidget(widgets.DOMWidget):
             self._rebuild_widget(fire_data_change_event=True)
         return True
 
+    def _handle_change_filter_to_text(self, content):
+        if not self._initialized:
+            return
+        if self.gtype == "sql":
+            try:
+                tmp = self._df[content['field']].astype(str)
+            except:
+                self.log.error(f"Cannot convert column data to string!")
+                return False
+            self.sql.add_to_convert((content['field'],"text"))
+            self._rebuild_widget(fire_data_change_event=True)
+        return True
+
     def _handle_change_column_order(self, content):
         if not self._initialized:
             return
@@ -1726,6 +1739,9 @@ class sqlgridWidget(widgets.DOMWidget):
                 return
         elif content['type'] == 'change_filter_to_date':
             if not self._handle_change_filter_to_date(content):
+                return
+        elif content['type'] == 'change_filter_to_text':
+            if not self._handle_change_filter_to_text(content):
                 return
         elif content['type'] == 'change_column_order':
             if not self._handle_change_column_order(content):

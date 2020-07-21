@@ -91,7 +91,7 @@ class sqlData():
     def getColumns(self):
         """
         Using the self.filter list, returns an SQL compliant column list
-        Adds the index clolumn if existing in the database table
+        Adds the index column if existing in the database table
 
         Parameters
         ----------
@@ -116,17 +116,19 @@ class sqlData():
                         otype = self.convert[i][1]
                         token = ""
                         if otype == "date":
-                            token = f"DATE(`{col}`) AS `{col}`"                        
+                            token = f"DATE(`{col}`) AS `{col}`"
+                        if otype == "text":
+                            token =  self.getCast(f"`{col}`")                   
                     else:
                         token = col
                     if len(token) !=0:
                         if len(_filter) == 0:
-                            if token.startswith("DATE"):
+                            if token.startswith("DATE") or token.startswith("CAST"):
                                 _filter = token
                             else:
                                 _filter = f"`{token}`"
                         else:
-                            if token.startswith("DATE"):
+                            if token.startswith("DATE") or token.startswith("CAST"):
                                 _filter += f",{token}"
                             else:                                
                                 _filter += f",`{token}`"
@@ -142,16 +144,18 @@ class sqlData():
                 token = ""
                 if otype == "date":
                     token = f"DATE(`{col}`) AS `{col}`"                        
+                if otype == "text":
+                    token =  self.getCast(f"`{col}`")                       
             else:
                 token = col
             if len(token) !=0:
                 if len(_filter) == 0:
-                    if token.startswith("DATE"):
+                    if token.startswith("DATE") or token.startswith("CAST"):
                         _filter = token
                     else:
                         _filter = f"`{token}`"
                 else:
-                    if token.startswith("DATE"):
+                    if token.startswith("DATE") or token.startswith("CAST"):
                         _filter += f",{token}"
                     else:                                
                         _filter += f",`{token}`"            
@@ -267,6 +271,8 @@ class sqlData():
                 otype = self.convert[i][1]
                 if otype == "date":
                     token = f"DATE(`{col}`)"
+                if otype == 'text':
+                    token = self.getCast(f"`{col}`")
             if col in _filter_tables and col not in exclude and 'filter_info' in columns[col]:
                 if columns[col]['filter_info']['type'] == 'text' \
                         and 'selected' in columns[col]['filter_info'] \
@@ -413,19 +419,28 @@ class sqlData():
             i = convertkeys.index(column)
             otype = self.convert[i][1]
             if otype == "date":
-                token = f"DATE(`{column}`)"
+                token = f"DATE(`{column}`) AS `{column}`"
+            if otype == "text":
+                token = self.getCast(f"`{column}`")      
 
         with self.engine.connect() as conn:
-            statement = text(f"SELECT DISTINCT {token} AS `{column}` FROM `{self.table}` {self.where(exclude=[column])} ORDER BY `{column}`")
+            statement = text(f"SELECT DISTINCT {token} FROM `{self.table}` {self.where(exclude=[column])} ORDER BY `{column}`")
             result = conn.execute(statement).fetchall()
-            if otype == 'text':
-                values = [str(r[0]) for r in result]
-        return values
+            return [r[0] for r in result]
 
-    def getTables(self):
+    def getCast(self,column):
+        '''get the appropriate cast statement depending upon engine'''
         if self.engine is None:
             self.engine = sqlalchemy.create_engine(self.path)
+        if 'sqlite' in self.engine.name:
+            return f"CAST({column} AS text) AS {column}"
+        elif 'mysql' in self.engine.name:
+            return f"CAST({column} AS CHAR) AS {column}"
+
+    def getTables(self):
         '''tables = List of database's Tables'''
+        if self.engine is None:
+            self.engine = sqlalchemy.create_engine(self.path)
         if 'sqlite' in self.engine.name:
             statement = text("SELECT name FROM sqlite_master WHERE type = 'table' OR type = 'view'")
         elif 'mysql' in self.engine.name:
