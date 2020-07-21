@@ -18,7 +18,8 @@ class SliderFilter extends filter_base.FilterBase {
           </span>
         </div>
         <div class='dropdown-footer'>
-          <a class='reset-link' href='#'>Reset</a>
+        <a class='text-link' href='#'>|String</a>
+        <a class='reset-link' href='#'>Reset</a>
         </div>
       </div>
     `;
@@ -35,6 +36,14 @@ class SliderFilter extends filter_base.FilterBase {
 
     this.set_value(values_to_set[0], values_to_set[1]);
 
+    this.filter_elem.find("a.text-link").click((e) => {
+      this.ignore_selection_changed = true;
+      this.reset_filter();
+      this.ignore_selection_changed = false;
+      this.send_filter_changed_to_text();
+      return false;
+    });
+  
     this.slider_elem.slider({
       range: true,
       min: this.min_value,

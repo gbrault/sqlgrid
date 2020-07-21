@@ -502,7 +502,7 @@
   float: right;
 }
 
-.q-grid-container .grid-filter .dropdown-footer a.date-link {
+.q-grid-container .grid-filter .dropdown-footer a.date-link a.text-link {
   padding: 0px;
   float: right;
 }

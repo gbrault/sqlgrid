@@ -56,6 +56,7 @@ From a shell in a directory and an environment where Jupyter Lab is installed
 
 At this point if you run jupyter lab normally with the 'jupyter lab' command, you should be
 able to use sqlgrid in notebooks as you normally would.
+you can change password with `jupyter notebook password`
 
 Documentation
 -------------
