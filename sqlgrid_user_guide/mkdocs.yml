@@ -1,0 +1,26 @@
+site_name: Sqlgrid User Guide
+nav:
+    - About: index.md
+    - Features and Usage: FeaturesnUsage.md
+    - User Interface: ui.md
+ 
+theme:
+  name: material
+  language: en
+  palette:
+    primary: indigo
+    accent: indigo
+  font:
+    text: Roboto
+    code: Roboto Mono     
+plugins:
+    - search
+    - mkpdfs:
+        company: Sea Dev
+        author: Gilbert Brault    
+markdown_extensions:
+    - admonition
+    - codehilite   
+    - toc:
+        permalink: True
+        separator: "_" 
