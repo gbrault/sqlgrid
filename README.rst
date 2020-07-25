@@ -102,6 +102,7 @@ For the User guide
     * pip install git+https://github.com/comwes/mkpdfs-mkdocs-plugin.git
 * cd sqlgrid_user_guide
 * mkdocs serve
+* mkdocs gh-deploy
 
 
 What's New
