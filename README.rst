@@ -42,7 +42,13 @@ Installation
 
 Currently only source installation is possible
 
-Requires Yarn installed
+Requires
+- python
+- tools to compile python
+- Yarn installed
+- npm installed
+
+installing nodejs with tools might do the job on windows
 
 From a shell in a directory and an environment where Jupyter Lab is installed
 
@@ -50,8 +56,12 @@ From a shell in a directory and an environment where Jupyter Lab is installed
 
   git clone https://github.com/seadevfr/sqlgrid.git
   cd ./sqlgrid
-  python setup.py install
-  jupyter labextension install js/
+  python setup.py install   (for windows setupw.py)
+  pip install ipywidgets or pip install git+https://github.com/jupyter-widgets/ipywidgets.git
+  jupyter labextension install --no-build @jupyter-widgets/jupyterlab-manager
+  jupyter labextension install --no-build js/
+  jupyter lab clean
+  jupyter lab build
 
 
 At this point if you run jupyter lab normally with the 'jupyter lab' command, you should be
@@ -78,6 +88,20 @@ For Javascript
 
 output files are located in the js/out directory
 
+For the User guide
+
+* install mkdocs 
+    * pip install mkdocs
+    * weasyprint see: https://weasyprint.readthedocs.io/en/stable/install.html
+    * pip install git+https://github.com/squidfunk/mkdocs-material.git
+    - mkpdfs:
+        company: Sea Dev
+        author: Gilbert Brault   
+    * pip install git+https://github.com/zhaoterryy/mkdocs-pdf-export-plugin.git@master
+    * pip install git+https://github.com/comwes/mkpdfs-mkdocs-plugin.git
+* cd sqlgrid_user_guide
+* mkdocs serve
+
 
 What's New
 ----------
@@ -85,3 +109,4 @@ What's New
 * 07/06/2020 SQL implementation released
 * 08/06/2020 Documentation (python + javascript)
 * 11/06/2020 Added chinook Database (https://www.sqlitetutorial.net/sqlite-sample-database/) + voila capability
+* 25/07/2020 Added user guide based upon mkdocs

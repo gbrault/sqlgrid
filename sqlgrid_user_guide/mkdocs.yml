@@ -14,10 +14,7 @@ theme:
     text: Roboto
     code: Roboto Mono     
 plugins:
-    - search
-    - mkpdfs:
-        company: Sea Dev
-        author: Gilbert Brault    
+    - search 
 markdown_extensions:
     - admonition
     - codehilite   
