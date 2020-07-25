@@ -24,6 +24,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">sqlgrid 1.3.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to sqlgrid’s documentation!</a></li> 
       </ul>
@@ -40,15 +43,902 @@
 </div>
 <div class="section" id="sqlgrid-functions-module">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlgrid</span> <span class="pre">functions</span></code> Module<a class="headerlink" href="#sqlgrid-functions-module" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="sqlgrid.show_grid">
+<code class="sig-prename descclassname">sqlgrid.</code><code class="sig-name descname">show_grid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_frame</span></em>, <em class="sig-param"><span class="n">show_toolbar</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">precision</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">grid_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">column_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">column_definitions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">row_edit_callback</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#show_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.show_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Renders a DataFrame, a Serie or an sqlData object as an interactive sqlgrid, represented by
+an instance of the <code class="docutils literal notranslate"><span class="pre">sqlgridWidget</span></code> class.  The <code class="docutils literal notranslate"><span class="pre">sqlgridWidget</span></code> instance
+is constructed using the options passed in to this function.  The
+<code class="docutils literal notranslate"><span class="pre">data_frame</span></code> argument to this function is used as the <code class="docutils literal notranslate"><span class="pre">df</span></code> kwarg in
+call to the sqlgridWidget constructor, and the rest of the parameters
+are passed through as is.</p>
+<ul class="simple">
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> argument is a Series, it will be converted to a
+DataFrame before being passed in to the sqlgridWidget constructor as the
+<code class="docutils literal notranslate"><span class="pre">df</span></code> kwarg.</p></li>
+<li><p>If the <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> argument is an sqlData object, it will use this object
+to provide the appropriate table slice and column definition etc. to the sqlgridwidget</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_frame</strong> (<em>DataFrame</em><em> or </em><a class="reference internal" href="#sqlgrid.sqlData.sqlData" title="sqlgrid.sqlData.sqlData"><em>sqlData</em></a>) – The Data that will be displayed by this instance of
+sqlgridWidget.
+DataFrame: same behavior as qgrid
+sqlData: a wrapper around an SQL database connection</p></li>
+<li><p><strong>grid_options</strong> (<em>dict</em>) – Options to use when creating the SlickGrid control (i.e. the
+interactive grid).  See the Notes section below for more information
+on the available options, as well as the default options that this
+widget uses.</p></li>
+<li><p><strong>precision</strong> (<em>integer</em>) – The number of digits of precision to display for floating-point
+values.  If unset, we use the value of
+<cite>pandas.get_option(‘display.precision’)</cite>.</p></li>
+<li><p><strong>show_toolbar</strong> (<em>bool</em>) – Whether to show a toolbar with options for adding/removing rows.
+Adding/removing rows is an experimental feature which only works
+with DataFrames that have an integer index.</p></li>
+<li><p><strong>column_options</strong> (<em>dict</em>) – Column options that are to be applied to every column. See the
+Notes section below for more information on the available options,
+as well as the default options that this widget uses.</p></li>
+<li><p><strong>column_definitions</strong> (<em>dict</em>) – Column options that are to be applied to individual
+columns. The keys of the dict should be the column names, and each
+value should be the column options for a particular column,
+represented as a dict. The available options for each column are the
+same options that are available to be set for all columns via the
+<code class="docutils literal notranslate"><span class="pre">column_options</span></code> parameter. See the Notes section below for more
+information on those options.</p></li>
+<li><p><strong>row_edit_callback</strong> (<em>callable</em>) – A callable that is called to determine whether a particular row
+should be editable or not. Its signature should be
+<code class="docutils literal notranslate"><span class="pre">callable(row)</span></code>, where <code class="docutils literal notranslate"><span class="pre">row</span></code> is a dictionary which contains a
+particular row’s values, keyed by column name. The callback should
+return True if the provided row should be editable, and False
+otherwise.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The grid Widget corresponding to the provided parameters</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#sqlgrid.sqlgridWidget" title="sqlgrid.sqlgridWidget">sqlgridWidget</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The following dictionary is used for <code class="docutils literal notranslate"><span class="pre">grid_options</span></code> if none are
+provided explicitly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="c1"># SlickGrid options</span>
+    <span class="s1">&#39;fullWidthRows&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;syncColumnCellResize&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;forceFitColumns&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;defaultColumnWidth&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
+    <span class="s1">&#39;rowHeight&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+    <span class="s1">&#39;enableColumnReorder&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;enableTextSelectionOnCells&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;editable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;autoEdit&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;explicitInitialization&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+
+    <span class="c1"># sqlgrid options</span>
+    <span class="s1">&#39;maxVisibleRows&#39;</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span>
+    <span class="s1">&#39;minVisibleRows&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s1">&#39;sortable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;filterable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;highlightSelectedCell&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;highlightSelectedRow&#39;</span><span class="p">:</span> <span class="kc">True</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The first group of options are SlickGrid “grid options” which are
+described in the <a class="reference external" href="https://github.com/6pac/SlickGrid/wiki">Slick Grid Wiki</a>.</p>
+<p>The second group of option are options that were added specifically
+for sqlgrid and therefore are not documented in the SlickGrid documentation.
+The following bullet points describe these options.</p>
+<ul class="simple">
+<li><p><strong>maxVisibleRows</strong> The maximum number of rows that sqlgrid will show.</p></li>
+<li><p><strong>minVisibleRows</strong> The minimum number of rows that sqlgrid will show</p></li>
+<li><p><strong>sortable</strong> Whether the sqlgrid instance will allow the user to sort
+columns by clicking the column headers. When this is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+nothing will happen when users click the column headers.</p></li>
+<li><p><strong>filterable</strong> Whether the sqlgrid instance will allow the user to filter
+the grid. When this is set to <code class="docutils literal notranslate"><span class="pre">False</span></code> the filter icons won’t be shown
+for any columns.</p></li>
+<li><p><strong>highlightSelectedCell</strong> If you set this to True, the selected cell
+will be given a light blue border.</p></li>
+<li><p><strong>highlightSelectedRow</strong> If you set this to False, the light blue
+background that’s shown by default for selected rows will be hidden.</p></li>
+</ul>
+<p>The following dictionary is used for <code class="docutils literal notranslate"><span class="pre">column_options</span></code> if none are
+provided explicitly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="c1"># SlickGrid column options</span>
+    <span class="s1">&#39;defaultSortAsc&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;maxWidth&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;minWidth&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="s1">&#39;resizable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;sortable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;toolTip&#39;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;width&#39;</span><span class="p">:</span> <span class="kc">None</span>
+
+    <span class="c1"># sqlgrid column options</span>
+    <span class="s1">&#39;editable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The first group of options are SlickGrid “column options” which are
+described in the <a class="reference external" href="https://github.com/6pac/SlickGrid/wiki">Slick Grid Wiki</a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">editable</span></code> option was added specifically for sqlgrid and therefore is
+not documented in the <a class="reference external" href="https://github.com/6pac/SlickGrid/wiki">Slick Grid Wiki</a>.  This option specifies
+whether a column should be editable or not.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-func docutils literal notranslate"><span class="pre">set_defaults()</span></code></dt><dd><p>Permanently set global defaults for the parameters of <code class="docutils literal notranslate"><span class="pre">show_grid</span></code>, with the exception of the <code class="docutils literal notranslate"><span class="pre">data_frame</span></code> and <code class="docutils literal notranslate"><span class="pre">column_definitions</span></code> parameters, since those depend on the particular set of data being shown by an instance, and therefore aren’t parameters we would want to set for all sqlgridWidet instances.</p>
+</dd>
+<dt><code class="xref py py-func docutils literal notranslate"><span class="pre">set_grid_option()</span></code></dt><dd><p>Permanently set global defaults for individual grid options.  Does so by changing the defaults that the <code class="docutils literal notranslate"><span class="pre">show_grid</span></code> method uses for the <code class="docutils literal notranslate"><span class="pre">grid_options</span></code> parameter.</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget" title="sqlgrid.sqlgridWidget"><code class="xref py py-func docutils literal notranslate"><span class="pre">sqlgridWidget()</span></code></a></dt><dd><p>The widget class that is instantiated and returned by this method.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
 </div>
 <div class="section" id="gridctl-module">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">gridctl</span></code> Module<a class="headerlink" href="#gridctl-module" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="sqlgrid.gridctl">
+<em class="property">class </em><code class="sig-prename descclassname">sqlgrid.</code><code class="sig-name descname">gridctl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">grid_options</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">tableScan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#gridctl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.gridctl" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>An extended grid including a controller for column setup and the resulting grid</p>
+<blockquote>
+<div><dl class="simple">
+<dt>data<span class="classifier">DataFrame, sqlData</span></dt><dd><p>The data source: a pandas DataFrame or an SQLAlchemy connection string</p>
+</dd>
+<dt>grid_options: list</dt><dd><p>Key argument, Set the grid behavior</p>
+</dd>
+<dt>tableScan: Boolean</dt><dd><p>Key argument, if true the UI has one more dropdown, showing the list of the SQL database tables.
+This dropdown allows browsing the selected table.</p>
+</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sqlgrid.sqlData</span> <span class="kn">import</span> <span class="n">sqlData</span>
+<span class="n">grid_options</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># SlickGrid options</span>
+    <span class="s1">&#39;fullWidthRows&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;syncColumnCellResize&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;forceFitColumns&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;defaultColumnWidth&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">,</span>
+    <span class="s1">&#39;rowHeight&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+    <span class="s1">&#39;enableColumnReorder&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;enableTextSelectionOnCells&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;editable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;autoEdit&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s1">&#39;explicitInitialization&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;enableCellNavigation&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+
+    <span class="c1"># Qgrid options</span>
+    <span class="s1">&#39;maxVisibleRows&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;minVisibleRows&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s1">&#39;sortable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;filterable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;highlightSelectedCell&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s1">&#39;highlightSelectedRow&#39;</span><span class="p">:</span> <span class="kc">True</span>
+<span class="p">}</span>
+<span class="n">file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;path of the SQLITE database&gt;&quot;</span>
+<span class="n">databaselite</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;sqlite:///</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">table</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&lt;table name in the database&gt;&quot;</span>
+<span class="c1"># if you want to have output from the sqlData instance (mostly debug)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">Layout</span><span class="p">(</span><span class="n">border</span><span class="o">=</span><span class="s1">&#39;1px solid black&#39;</span><span class="p">))</span>
+<span class="n">sql</span> <span class="o">=</span> <span class="n">sqlData</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">databaselite</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="n">table</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">out</span><span class="p">)</span>
+<span class="n">grid</span> <span class="o">=</span> <span class="n">sqlgrid</span><span class="o">.</span><span class="n">gridctl</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">grid_options</span><span class="o">=</span><span class="n">grid_options</span><span class="p">)</span>
+<span class="c1"># show the grid</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">_gridctl</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="sqlgrid.gridctl.columnSetup">
+<code class="sig-name descname">columnSetup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">grid</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#gridctl.columnSetup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.gridctl.columnSetup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show/Hide columns, bound to the self._columns grid, used to setup the main grid behavior</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>list</em>) – the grid change event (see: cell_edited)</p></li>
+<li><p><strong>grid</strong> (<a class="reference internal" href="#sqlgrid.sqlgridWidget" title="sqlgrid.sqlgridWidget"><em>sqlgrid.sqlgridWidget</em></a>) – the grid object which changed</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.gridctl.handle_change_column_order">
+<code class="sig-name descname">handle_change_column_order</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">event</span></em>, <em class="sig-param"><span class="n">sqlgrid_widget</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#gridctl.handle_change_column_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.gridctl.handle_change_column_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle column reordering event</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>event</strong> (<em>list</em>) – the data associated with the event {“name”:”change_column_order”,”filter”:[col1,col2,col3,…]}</p></li>
+<li><p><strong>sqlgrid_widget</strong> (<a class="reference internal" href="#sqlgrid.sqlgridWidget" title="sqlgrid.sqlgridWidget"><em>sqlgridWidget</em></a>) – the grid which triggered the event</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.gridctl.menu_click">
+<code class="sig-name descname">menu_click</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#gridctl.menu_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.gridctl.menu_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show/Hide the column setup grid, bound to self.menu button</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>b</strong> (<em>ipywidgets.Button</em>) – the triggering button</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.gridctl.refresh_click">
+<code class="sig-name descname">refresh_click</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#gridctl.refresh_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.gridctl.refresh_click" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Refresh grid layout</dt><dd><dl class="simple">
+<dt>b: ipywidgets.Button</dt><dd><p>the triggering button</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="sqlgridwidget-module">
 <h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlgridWidget</span></code> Module<a class="headerlink" href="#sqlgridwidget-module" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="sqlgrid.sqlgridWidget">
+<em class="property">class </em><code class="sig-prename descclassname">sqlgrid.</code><code class="sig-name descname">sqlgridWidget</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget" title="Permalink to this definition">¶</a></dt>
+<dd><p>The widget class which is instantiated by the <code class="docutils literal notranslate"><span class="pre">show_grid</span></code> method. This
+class can be constructed directly but that’s not recommended because
+then default options have to be specified explicitly (since default
+options are normally provided by the <code class="docutils literal notranslate"><span class="pre">show_grid</span></code> method).</p>
+<p>The constructor for this class takes all the same parameters as
+<code class="docutils literal notranslate"><span class="pre">show_grid</span></code>, with one exception, which is that the required
+<code class="docutils literal notranslate"><span class="pre">data_frame</span></code> parameter is replaced by an optional keyword argument
+called <code class="docutils literal notranslate"><span class="pre">df</span></code>.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.show_grid" title="sqlgrid.show_grid"><code class="xref py py-class docutils literal notranslate"><span class="pre">show_grid</span></code></a></dt><dd><p>The method that should be used to construct sqlgridWidget instances, because it provides reasonable defaults for all of the sqlgrid options.</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.gridctl" title="sqlgrid.gridctl"><code class="xref py py-class docutils literal notranslate"><span class="pre">gridctl</span></code></a></dt><dd><p>A class which associate a grid and a controller setting the grid layout, for example control the displayed columns, their order and type (change from string to date…)</p>
+</dd>
+</dl>
 </div>
-<div class="section" id="sqldata-module">
-<h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlData</span></code> Module<a class="headerlink" href="#sqldata-module" title="Permalink to this headline">¶</a></h2>
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.df">
+<code class="sig-name descname">df</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the DataFrame that’s being displayed by the current instance.
+This DataFrame will NOT reflect any sorting/filtering/editing
+changes that are made via the UI. To get a copy of the DataFrame that
+does reflect sorting/filtering/editing changes, use the
+<code class="docutils literal notranslate"><span class="pre">get_changed_df()</span></code> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.grid_options">
+<code class="sig-name descname">grid_options</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.grid_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the grid options being used by the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.precision">
+<code class="sig-name descname">precision</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.precision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the precision options being used by the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>integer</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.show_toolbar">
+<code class="sig-name descname">show_toolbar</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.show_toolbar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the show_toolbar option being used by the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.column_options">
+<code class="sig-name descname">column_options</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.column_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the column options being used by the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="sqlgrid.sqlgridWidget.column_definitions">
+<code class="sig-name descname">column_definitions</code><a class="headerlink" href="#sqlgrid.sqlgridWidget.column_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get/set the column definitions (column-specific options)
+being used by the current instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.add_row">
+<code class="sig-name descname">add_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.add_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.add_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a row at the end of the DataFrame.  Values for the new row
+can be provided via the <code class="docutils literal notranslate"><span class="pre">row</span></code> argument, which is optional for
+DataFrames that have an integer index, and required otherwise.
+If the <code class="docutils literal notranslate"><span class="pre">row</span></code> argument is not provided, the last row will be
+duplicated and the index of the new row will be the index of
+the last row plus one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>row</strong> (<em>list</em><em> (</em><em>default: None</em><em>)</em>) – A list of 2-tuples of (column name, column value) that specifies
+the values for the new row.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.remove_rows" title="sqlgrid.sqlgridWidget.remove_rows"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlgridWidget.remove_rows()</span></code></a></dt><dd><p>The method for removing a row (or rows).</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.change_grid_option">
+<code class="sig-name descname">change_grid_option</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">option_name</span></em>, <em class="sig-param"><span class="n">option_value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.change_grid_option"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.change_grid_option" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change a SlickGrid grid option without rebuilding the entire grid
+widget. Not all options are supported at this point so this
+method should be considered experimental.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>option_name</strong> (<em>str</em>) – The name of the grid option to be changed.</p></li>
+<li><p><strong>option_value</strong> (<em>str</em>) – The new value for the grid option.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.edit_cell">
+<code class="sig-name descname">edit_cell</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">column</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.edit_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.edit_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Edit a cell of the grid, given the index and column of the cell
+to edit, as well as the new value of the cell. Results in a
+<code class="docutils literal notranslate"><span class="pre">cell_edited</span></code> event being fired.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> (<em>object</em>) – The index of the row containing the cell that is to be edited.</p></li>
+<li><p><strong>column</strong> (<em>str</em>) – The name of the column containing the cell that is to be edited.</p></li>
+<li><p><strong>value</strong> (<em>object</em>) – The new value for the cell.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.get_changed_df">
+<code class="sig-name descname">get_changed_df</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.get_changed_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.get_changed_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a copy of the DataFrame that was used to create the current
+instance of sqlgridWidget which reflects the current state of the UI.
+This includes any sorting or filtering changes, as well as edits
+that have been made by double clicking cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.get_selected_df">
+<code class="sig-name descname">get_selected_df</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.get_selected_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.get_selected_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a DataFrame which reflects the current state of the UI and only
+includes the currently selected row(s). Internally it calls
+<code class="docutils literal notranslate"><span class="pre">get_changed_df()</span></code> and then filters down to the selected rows
+using <code class="docutils literal notranslate"><span class="pre">iloc</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.get_selected_rows">
+<code class="sig-name descname">get_selected_rows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.get_selected_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.get_selected_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the currently selected rows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List of integers</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.off">
+<code class="sig-name descname">off</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">names</span></em>, <em class="sig-param"><span class="n">handler</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.off"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.off" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a sqlgrid event handler that was registered with the current
+instance’s <code class="docutils literal notranslate"><span class="pre">on</span></code> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>names</strong> (<em>list</em><em>, </em><em>str</em><em>, </em><em>All</em><em> (</em><em>default: All</em><em>)</em>) – The names of the events for which the specified handler should be
+uninstalled. If names is All, the specified handler is uninstalled
+from the list of notifiers corresponding to all events.</p></li>
+<li><p><strong>handler</strong> (<em>callable</em>) – A callable that was previously registered with the current
+instance’s <code class="docutils literal notranslate"><span class="pre">on</span></code> method.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.on" title="sqlgrid.sqlgridWidget.on"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlgridWidget.on()</span></code></a></dt><dd><p>The method for hooking up instance-level handlers that this <code class="docutils literal notranslate"><span class="pre">off</span></code> method can remove.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.on">
+<code class="sig-name descname">on</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">names</span></em>, <em class="sig-param"><span class="n">handler</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.on"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.on" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a handler to be called when a user interacts with the current
+instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>names</strong> (<em>list</em><em>, </em><em>str</em><em>, </em><em>All</em>) – If names is All, the handler will apply to all events.  If a list
+of str, handler will apply to all events named in the list.  If a
+str, the handler will apply just the event with that name.</p></li>
+<li><p><strong>handler</strong> (<em>callable</em>) – A callable that is called when the event occurs. Its
+signature should be <code class="docutils literal notranslate"><span class="pre">handler(event,</span> <span class="pre">sqlgrid_widget)</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">event</span></code> is a dictionary and <code class="docutils literal notranslate"><span class="pre">sqlgrid_widget</span></code> is the sqlgridWidget
+instance that fired the event. The <code class="docutils literal notranslate"><span class="pre">event</span></code> dictionary at least
+holds a <code class="docutils literal notranslate"><span class="pre">name</span></code> key which specifies the name of the event that
+occurred.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Here’s the list of events that you can listen to on sqlgridWidget
+instances via the <code class="docutils literal notranslate"><span class="pre">on</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+    <span class="s1">&#39;cell_edited&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;selection_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;viewport_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;row_added&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;row_removed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;filter_dropdown_shown&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;filter_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;sort_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;text_filter_viewport_changed&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;json_updated&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;change_column_order&#39;</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>The following bullet points describe the events listed above in more
+detail.  Each event bullet point is followed by sub-bullets which
+describe the keys that will be included in the <code class="docutils literal notranslate"><span class="pre">event</span></code> dictionary
+for each event.</p>
+<ul>
+<li><p><strong>cell_edited</strong> The user changed the value of a cell in the grid.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>index</strong> The index of the row that contains the edited cell.</p></li>
+<li><p><strong>column</strong> The name of the column that contains the edited cell.</p></li>
+<li><p><strong>old</strong> The previous value of the cell.</p></li>
+<li><p><strong>new</strong> The new value of the cell.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>filter_changed</strong> The user changed the filter setting for a column.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>column</strong> The name of the column for which the filter setting
+was changed.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>filter_dropdown_shown</strong> The user showed the filter control for a
+column by clicking the filter icon in the column’s header.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>column</strong> The name of the column for which the filter control
+was shown.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>json_updated</strong> A user action causes sqlgridWidget to send rows of
+data (in json format) down to the browser. This happens as a side
+effect of certain actions such as scrolling, sorting, and filtering.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>triggered_by</strong> The name of the event that resulted in
+rows of data being sent down to the browser.  Possible values
+are <code class="docutils literal notranslate"><span class="pre">change_viewport</span></code>, <code class="docutils literal notranslate"><span class="pre">change_filter</span></code>, <code class="docutils literal notranslate"><span class="pre">change_sort</span></code>,
+<code class="docutils literal notranslate"><span class="pre">add_row</span></code>, <code class="docutils literal notranslate"><span class="pre">remove_row</span></code>, and <code class="docutils literal notranslate"><span class="pre">edit_cell</span></code>.</p></li>
+<li><p><strong>range</strong> A tuple specifying the range of rows that have been
+sent down to the browser.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>row_added</strong> The user added a new row using the “Add Row” button
+in the grid toolbar.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>index</strong> The index of the newly added row.</p></li>
+<li><p><strong>source</strong> The source of this event.  Possible values are
+<code class="docutils literal notranslate"><span class="pre">api</span></code> (an api method call) and <code class="docutils literal notranslate"><span class="pre">gui</span></code> (the grid interface).</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>row_removed</strong> The user added removed one or more rows using the
+“Remove Row” button in the grid toolbar.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>indices</strong> The indices of the removed rows, specified as an
+array of integers.</p></li>
+<li><p><strong>source</strong> The source of this event.  Possible values are
+<code class="docutils literal notranslate"><span class="pre">api</span></code> (an api method call) and <code class="docutils literal notranslate"><span class="pre">gui</span></code> (the grid interface).</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>selection_changed</strong> The user changed which rows were highlighted
+in the grid.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>old</strong> An array specifying the indices of the previously
+selected rows.</p></li>
+<li><p><strong>new</strong> The indices of the rows that are now selected, again
+specified as an array.</p></li>
+<li><p><strong>source</strong> The source of this event.  Possible values are
+<code class="docutils literal notranslate"><span class="pre">api</span></code> (an api method call) and <code class="docutils literal notranslate"><span class="pre">gui</span></code> (the grid interface).</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>sort_changed</strong> The user changed the sort setting for the grid.</p>
+<blockquote>
+<div><ul>
+<li><p><strong>old</strong> The previous sort setting for the grid, specified as a
+dict with the following keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>column</strong> The name of the column that the grid was sorted by</p></li>
+<li><p><strong>ascending</strong> Boolean indicating ascending/descending order</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>new</strong> The new sort setting for the grid, specified as a dict
+with the following keys:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>column</strong> The name of the column that the grid is currently
+sorted by</p></li>
+<li><p><strong>ascending</strong> Boolean indicating ascending/descending order</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>text_filter_viewport_changed</strong> The user scrolled the new rows
+into view in the filter dropdown for a text field.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>column</strong> The name of the column whose filter dropdown is
+visible</p></li>
+<li><p><strong>old</strong> A tuple specifying the previous range of visible rows
+in the filter dropdown.</p></li>
+<li><p><strong>new</strong> A tuple specifying the range of rows that are now
+visible in the filter dropdown.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>viewport_changed</strong> The user scrolled the new rows into view in
+the grid.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>old</strong> A tuple specifying the previous range of visible rows.</p></li>
+<li><p><strong>new</strong> A tuple specifying the range of rows that are now
+visible.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><strong>change_column_order</strong> Rhe user drag and drop a column header to
+change the column order layout</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>filter</strong> Is the list of new columns layout ordering</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">event</span></code> dictionary for every type of event will contain a
+<code class="docutils literal notranslate"><span class="pre">name</span></code> key specifying the name of the event that occurred.  That
+key is excluded from the lists of keys above to avoid redundacy.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.on" title="sqlgrid.sqlgridWidget.on"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on()</span></code></a></dt><dd><p>Same as the instance-level <code class="docutils literal notranslate"><span class="pre">on</span></code> method except it listens for events on all instances rather than on an individual sqlgridWidget instance.</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.off" title="sqlgrid.sqlgridWidget.off"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlgridWidget.off()</span></code></a></dt><dd><p>Unhook a handler that was hooked up using the instance-level <code class="docutils literal notranslate"><span class="pre">on</span></code> method.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.remove_row">
+<code class="sig-name descname">remove_row</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rows</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.remove_row"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.remove_row" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for <code class="docutils literal notranslate"><span class="pre">remove_rows</span></code>, which is provided for convenience
+because this was the previous name of that method.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.remove_rows">
+<code class="sig-name descname">remove_rows</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rows</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.remove_rows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.remove_rows" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a row (or rows) from the DataFrame.  The indices of the
+rows to remove can be provided via the optional <code class="docutils literal notranslate"><span class="pre">rows</span></code> argument.
+If the <code class="docutils literal notranslate"><span class="pre">rows</span></code> argument is not provided, the row (or rows) that are
+currently selected in the UI will be removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rows</strong> (<em>list</em><em> (</em><em>default: None</em><em>)</em>) – A list of indices of the rows to remove from the DataFrame. For
+a multi-indexed DataFrame, each index in the list should be a
+tuple, with each value in each tuple corresponding to a level of
+the MultiIndex.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.add_row" title="sqlgrid.sqlgridWidget.add_row"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlgridWidget.add_row()</span></code></a></dt><dd><p>The method for adding a row.</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.sqlgridWidget.remove_row" title="sqlgrid.sqlgridWidget.remove_row"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlgridWidget.remove_row()</span></code></a></dt><dd><p>Alias for this method.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlgridWidget.toggle_editable">
+<code class="sig-name descname">toggle_editable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/grid.html#sqlgridWidget.toggle_editable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlgridWidget.toggle_editable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change whether the grid is editable or not, without rebuilding
+the entire grid widget.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-sqlgrid.sqlData">
+<span id="sqldata-module"></span><h2><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlData</span></code> Module<a class="headerlink" href="#module-sqlgrid.sqlData" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="sqlgrid.sqlData.sqlData">
+<em class="property">class </em><code class="sig-prename descclassname">sqlgrid.sqlData.</code><code class="sig-name descname">sqlData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">table</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">page</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">out</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filter</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData" title="Permalink to this definition">¶</a></dt>
+<dd><p>sqlData class is the adapter between sqlgridWidget and an SQL DataSource
+New type accepted by the show_grid function which creates a Grid Widget</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>string</em>) – SQLAlchemy connection string to access the database</p></li>
+<li><p><strong>table</strong> (<em>string</em>) – which table of the database is targeted</p></li>
+<li><p><strong>page</strong> (<em>integer</em>) – should be the same value as PAGE_SIZE in grid.py</p></li>
+<li><p><strong>out</strong> (<em>ipywidget.output</em>) – if one wants to output some information (it’s for debug)</p></li>
+<li><p><strong>filter</strong> (<em>list</em>) – list of columns to filter from the table</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.show_grid" title="sqlgrid.show_grid"><code class="xref py py-class docutils literal notranslate"><span class="pre">sqlgrid.show_grid</span></code></a></dt><dd><p>open an sqlgrid in jupyter Lab notebook</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>How to set breakpoints in this code (usable in Jupyter Notebooks):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ipdb</span><span class="p">;</span> <span class="n">ipdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+<span class="c1"># don&#39;t always works however</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData._update_df">
+<code class="sig-name descname">_update_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_index_col_name</span></em>, <em class="sig-param"><span class="n">overlap</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData._update_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData._update_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the database table slice, as a DataFrame, according to the underlying grid state
+* save the _index_column_name as an instance variable
+* add a column named ‘_index_column_name’ to the result DataFrame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_index_col_name</strong> (<em>string</em>) – name of the column which will be added to the resulting DataFrame and needed by the grid</p></li>
+<li><p><strong>overlap</strong> (<em>integer</em>) – number of overlaping rows</p></li>
+<li><p><strong>self.table</strong> – the name of the table to work with</p></li>
+<li><p><strong>self.page</strong> – the page size to crop when reading the database table</p></li>
+<li><p><strong>self.position</strong> – where is the table cursor located</p></li>
+<li><p><strong>self.engine</strong> – the database SQLAlchemy engine connection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the table slice as a pandas DataFrame</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DataFrame</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#sqlgrid.sqlData.sqlData.getColumns" title="sqlgrid.sqlData.sqlData.getColumns"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlData.getColumns()</span></code></a></dt><dd><p>to get the list of column to return</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.sqlData.sqlData.where" title="sqlgrid.sqlData.sqlData.where"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlData.where()</span></code></a></dt><dd><p>to get the WHERE sub-statement to filter the resulting rows</p>
+</dd>
+<dt><a class="reference internal" href="#sqlgrid.sqlData.sqlData.order_by" title="sqlgrid.sqlData.sqlData.order_by"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sqlData.order_by()</span></code></a></dt><dd><p>to get the Order By sub-statement</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData._update_table">
+<code class="sig-name descname">_update_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_viewport_range</span></em>, <em class="sig-param"><span class="n">_df</span></em>, <em class="sig-param"><span class="n">widget</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData._update_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData._update_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recalculate which database table slice should be provided as the grid’s DataFrame</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_viewport_range</strong> (<em>tuple</em>) – <ul>
+<li><p>[0] index low range =&gt; if 0 user is moving backward</p></li>
+<li><p>[1] index high range =&gt; if &gt; self.page user is moving forward</p></li>
+</ul>
+</p></li>
+<li><p><strong>_df</strong> (<em>DataFrame</em>) – current value of the grid DataFrame (actually not currently used)</p></li>
+<li><p><strong>widget</strong> (<a class="reference internal" href="#sqlgrid.sqlgridWidget" title="sqlgrid.sqlgridWidget"><em>sqlgridWidget</em></a>) – reference of the underlying grid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(True if moving forward or False if backward, the table slice as a DataFrame)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.distinctValuesOrdered">
+<code class="sig-name descname">distinctValuesOrdered</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">column</span></em>, <em class="sig-param"><span class="n">otype</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.distinctValuesOrdered"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.distinctValuesOrdered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the distinct values of a given column sorted in ascending order</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>column</strong> (<em>string</em>) – Which column to look distinct values for</p></li>
+<li><p><strong>otype</strong> (<em>string</em>) – column type (‘text’,…)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list [] of sorted distinct values for the given column, null values are replaced by ‘None’ for a text column</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.getCast">
+<code class="sig-name descname">getCast</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">column</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.getCast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.getCast" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the appropriate cast statement depending upon engine</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.getColumns">
+<code class="sig-name descname">getColumns</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.getColumns"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.getColumns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using the self.filter list, returns an SQL compliant column list
+Adds the index column if existing in the database table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>self.filter</strong> (<em>list</em>) – The list of column to filter the database table</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An SQL compliant, comma separated and backtick quoted, list of columns</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.getTables">
+<code class="sig-name descname">getTables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.getTables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.getTables" title="Permalink to this definition">¶</a></dt>
+<dd><p>tables = List of database’s Tables</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.minmax">
+<code class="sig-name descname">minmax</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">column</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.minmax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.minmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the minimun and the maximum of an interger or float column</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>column</strong> (<em>string</em>) – which column to calculate (min,max)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>(min,max) of a given column</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.order_by">
+<code class="sig-name descname">order_by</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.order_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.order_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using bound grid state, returns the SQL “ORDER BY” sub-statement</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>self._widget._sort_field</strong> (<em>string</em>) – which column to sort with</p></li>
+<li><p><strong>self._widget._sort_ascending</strong> (<em>boolean</em>) – if True, set ‘ASC’ if False, set ‘DESC’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the sql “ORDER BY” sub-statement or “” if no order directive set</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="sqlgrid.sqlData.sqlData.where">
+<code class="sig-name descname">where</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">exclude</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/sqlgrid/sqlData.html#sqlData.where"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#sqlgrid.sqlData.sqlData.where" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using bound grid state, returns the SQL “WHERE” sub-statement or “” if no filtering set</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>exclude</strong> (<em>list</em><em>,</em><em>(</em><em>default=</em><em>[</em><em>]</em><em>)</em>) – list of columns to exclude when calculating where</p></li>
+<li><p><strong>self._widget._columns</strong> (<em>list</em>) – list of grid’s columns</p></li>
+<li><p><strong>self._widget_filter_tables</strong> (<em>list</em>) – filters set via the grid gui (can exist or not for a given column)</p></li>
+<li><p><strong>self._widget._columns</strong><strong>[</strong><strong>col</strong><strong>]</strong><strong>[</strong><strong>'filter_info'</strong><strong>]</strong> (<em>dict</em>) – holds the filter type and other descriptors depending upon type</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the sql “WHERE” sub-statement or “” if no filtering conditions are set</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -65,7 +955,7 @@
 <li><a class="reference internal" href="#sqlgrid-functions-module"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlgrid</span> <span class="pre">functions</span></code> Module</a></li>
 <li><a class="reference internal" href="#gridctl-module"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gridctl</span></code> Module</a></li>
 <li><a class="reference internal" href="#sqlgridwidget-module"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlgridWidget</span></code> Module</a></li>
-<li><a class="reference internal" href="#sqldata-module"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlData</span></code> Module</a></li>
+<li><a class="reference internal" href="#module-sqlgrid.sqlData"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sqlData</span></code> Module</a></li>
 </ul>
 </li>
 </ul>
@@ -97,6 +987,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">sqlgrid 1.3.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Welcome to sqlgrid’s documentation!</a></li> 
       </ul>

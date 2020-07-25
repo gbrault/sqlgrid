@@ -78,6 +78,7 @@ For Python
 
 * Go in the doc directory in a shell
 * ./make html
+* source in doc/source/index.rst
 
 output files are located in the ./doc/build/html directory
 
